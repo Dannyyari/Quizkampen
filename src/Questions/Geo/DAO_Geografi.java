@@ -1,12 +1,14 @@
 package Questions.Geo;
 
+import Questions.QuestionsAndAnswers;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class DAO_Geografi implements Serializable {
-   private List<GeoQ> geoQuestions = new ArrayList<>();
+   private List<QuestionsAndAnswers> geoQuestions = new ArrayList<>();
 
     public DAO_Geografi() {
         String readLine;
@@ -14,7 +16,7 @@ public class DAO_Geografi implements Serializable {
         {
             while ((readLine = reader.readLine()) != null) {
                 String[] strArray = readLine.split(", ");
-                geoQuestions.add(new GeoQ(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4]));
+                geoQuestions.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4]));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -23,8 +25,8 @@ public class DAO_Geografi implements Serializable {
         }
     }
 
-     public List<GeoQ> getRandomizedList(){
-        List<GeoQ> listOfRandomized= geoQuestions;
+     public List<QuestionsAndAnswers> getRandomizedList(){
+        List<QuestionsAndAnswers> listOfRandomized= geoQuestions;
          Collections.shuffle(listOfRandomized);
         return listOfRandomized;
      }

@@ -1,7 +1,6 @@
 import Questions.Geo.DAO_Geografi;
-import Questions.Geo.GeoQ;
+import Questions.QuestionsAndAnswers;
 import Questions.Sport.DAO_Sport;
-import Questions.Sport.SportQ;
 
 
 import java.io.Serializable;
@@ -15,17 +14,16 @@ public class Main implements Serializable {
         DAO_Sport SportFrågor = new DAO_Sport();
 
         //fördel med denna metod så kan vi kontrollera mer vilken fråga det blir
-        List<SportQ> sport = SportFrågor.getListOfRandomizedSportsQuestion();
+        List<QuestionsAndAnswers> sport = SportFrågor.getListOfRandomizedSportsQuestion();
         //tar ut en fråga
-        SportQ valdFråga=sport.get(0);
+        QuestionsAndAnswers valdFråga=sport.get(0);
 
-        String welcome= valdFråga.getWelcomeMessage();
         String fråga= valdFråga.getQuestion();
-        String svar=valdFråga.getCorrectanswer();
+        String svar=valdFråga.getCorrectAnswer();
         String felsvar=valdFråga.getAnswer2();
 
 
-        System.out.println(welcome+ ".."+ fråga+ " "+ svar+ " ..." + felsvar);
+        System.out.println( ".."+ fråga+ " "+ svar+ " ..." + felsvar);
         //fördel med denna metod så kan vi kontrollera mer vilken fråga det blir
     }
 
@@ -34,9 +32,9 @@ public class Main implements Serializable {
         //ropar på databas
       DAO_Geografi geo=new DAO_Geografi();
       //tar ut fråga + svar
-      List<GeoQ> geografi=geo.getRandomizedList();
+      List<QuestionsAndAnswers> geografi=geo.getRandomizedList();
       //tar ut en av 2 frågor
-      GeoQ valdFråga=geografi.get(0);
+      QuestionsAndAnswers valdFråga=geografi.get(0);
       //deklarerar frågan till sträng så vi kan ta ut och då ha detta i textfield.setText
       String frowga=valdFråga.getQuestion();
       String correct=valdFråga.getCorrectAnswer();
