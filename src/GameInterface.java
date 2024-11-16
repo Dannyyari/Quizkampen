@@ -22,12 +22,14 @@ public class GameInterface {
     };
 
     private static int currentQuestionIndex = 0;
+    private static int currentRound = 1; // Spårar nuvarande runda
+    private static final int TOTAL_ROUNDS = 2; // Totalt antal rundor
 
     public static void main(String[] args) {
         // Skapa huvudfönstret
         frame = new JFrame("Game Interface");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 350);
+        frame.setSize(300, 400);
         frame.setLayout(new BorderLayout());
 
         // Huvudpanelen
@@ -64,44 +66,31 @@ public class GameInterface {
         JPanel playerPanel = new JPanel(new GridLayout(1, 2));
         JLabel player1Label = new JLabel("Spelare 1", SwingConstants.CENTER);
         JLabel player2Label = new JLabel("Motståndare", SwingConstants.CENTER);
-
         playerPanel.add(player1Label);
         playerPanel.add(player2Label);
+
+        // Panel för cirklar under Spelare 1 och Motståndare
+        JPanel circlesPanel = getCirclesPanel();
 
         // Lägg till komponenter till toppanelen
         topPanel.add(turnLabel);
         topPanel.add(scoreLabel);
         topPanel.add(playerPanel);
 
-        // Mittenpanel med två rader av cirklar
-        JPanel middlePanel = new JPanel();
-        middlePanel.setLayout(new GridLayout(2, 1));
-
-        for (int i = 0; i < 2; i++) {
-            JPanel roundPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            for (int j = 0; j < 4; j++) {
-                JLabel circleLabel = new JLabel("O");
-                circleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-                roundPanel.add(circleLabel);
-            }
-            middlePanel.add(roundPanel);
-        }
+        // Mittenpanel med cirklar
+        JPanel middlePanel = new JPanel(new BorderLayout());
+        middlePanel.add(circlesPanel, BorderLayout.CENTER);
 
         // Bottenpanel med "Spela"-knappen
         JPanel bottomPanel = new JPanel();
         JButton playButton = new JButton("Spela");
-        bottomPanel.add(playButton);
-
-        // Klickhändelse för "Spela"-knappen
-        playButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.remove(panel);
-                frame.add(categoryPanel, BorderLayout.CENTER);
-                frame.revalidate();
-                frame.repaint();
-            }
+        playButton.addActionListener(e -> {
+            frame.remove(panel);
+            frame.add(categoryPanel, BorderLayout.CENTER);
+            frame.revalidate();
+            frame.repaint();
         });
+        bottomPanel.add(playButton);
 
         panel.add(topPanel, BorderLayout.NORTH);
         panel.add(middlePanel, BorderLayout.CENTER);
@@ -110,24 +99,58 @@ public class GameInterface {
         return panel;
     }
 
+    // Skapa cirkelpanelen för poängvisning
+    private static JPanel getCirclesPanel() {
+        JPanel circlesPanel = new JPanel(new GridLayout(2, 2));
+
+        // Cirklar för Spelare 1, rad 1
+        JPanel player1CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player1Circle1 = new JLabel("O");
+        JLabel player1Circle2 = new JLabel("O");
+        player1CirclesPanel1.add(player1Circle1);
+        player1CirclesPanel1.add(player1Circle2);
+
+        // Cirklar för Motståndare, rad 1
+        JPanel player2CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player2Circle1 = new JLabel("O");
+        JLabel player2Circle2 = new JLabel("O");
+        player2CirclesPanel1.add(player2Circle1);
+        player2CirclesPanel1.add(player2Circle2);
+
+        // Cirklar för Spelare 1, rad 2
+        JPanel player1CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player1Circle3 = new JLabel("O");
+        JLabel player1Circle4 = new JLabel("O");
+        player1CirclesPanel2.add(player1Circle3);
+        player1CirclesPanel2.add(player1Circle4);
+
+        // Cirklar för Motståndare, rad 2
+        JPanel player2CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player2Circle3 = new JLabel("O");
+        JLabel player2Circle4 = new JLabel("O");
+        player2CirclesPanel2.add(player2Circle3);
+        player2CirclesPanel2.add(player2Circle4);
+
+        // Lägg till alla cirkelpaneler
+        circlesPanel.add(player1CirclesPanel1);
+        circlesPanel.add(player2CirclesPanel1);
+        circlesPanel.add(player1CirclesPanel2);
+        circlesPanel.add(player2CirclesPanel2);
+
+        return circlesPanel;
+    }
+
     // Skapa kategoripanelen
     private static JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-
-        // Rubrik "Välj Kategori"
         JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
         panel.add(categoryLabel, BorderLayout.NORTH);
 
-        // Panel med kategoriknappar
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(3, 1, 10, 10));
-
-        // Kategoriknappar
+        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
         JButton sportButton = new JButton("Sport");
         JButton musicButton = new JButton("Musik");
         JButton scienceButton = new JButton("Vetenskap");
 
-        // Klickhändelse för kategoriknapparna
         ActionListener categoryButtonListener = e -> {
             frame.remove(categoryPanel);
             frame.add(questionPanel, BorderLayout.CENTER);
@@ -145,56 +168,41 @@ public class GameInterface {
         buttonPanel.add(scienceButton);
 
         panel.add(buttonPanel, BorderLayout.CENTER);
-
         return panel;
     }
 
-    // Skapa frågepanelen med fyra svarsknappar
+    // Skapa frågepanelen
     private static JPanel createQuestionPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-
-        // Fråga
         questionLabel = new JLabel("", SwingConstants.CENTER);
         panel.add(questionLabel, BorderLayout.NORTH);
 
-        // Panel för svarsknappar
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(2, 2, 10, 10));
-
-        // Svarsknappar
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         answerButton1 = new JButton();
         answerButton2 = new JButton();
         answerButton3 = new JButton();
         answerButton4 = new JButton();
 
-        // Klickhändelse för svarsknapparna
         ActionListener answerButtonListener = e -> {
             currentQuestionIndex++;
             if (currentQuestionIndex < questions.length) {
                 loadQuestion();
             } else {
-                // Om alla frågor är besvarade
-                JOptionPane.showMessageDialog(frame, "Runda 1 är över!");
-                frame.remove(questionPanel);
-                frame.add(mainPanel, BorderLayout.CENTER);
-                frame.revalidate();
-                frame.repaint();
-                currentQuestionIndex = 0; // Återställ frågeindex
+                handleEndOfRound();
             }
         };
-
-        answerButton1.addActionListener(answerButtonListener);
-        answerButton2.addActionListener(answerButtonListener);
-        answerButton3.addActionListener(answerButtonListener);
-        answerButton4.addActionListener(answerButtonListener);
 
         buttonPanel.add(answerButton1);
         buttonPanel.add(answerButton2);
         buttonPanel.add(answerButton3);
         buttonPanel.add(answerButton4);
 
-        panel.add(buttonPanel, BorderLayout.CENTER);
+        answerButton1.addActionListener(answerButtonListener);
+        answerButton2.addActionListener(answerButtonListener);
+        answerButton3.addActionListener(answerButtonListener);
+        answerButton4.addActionListener(answerButtonListener);
 
+        panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
     }
 
@@ -205,5 +213,22 @@ public class GameInterface {
         answerButton2.setText(answers[currentQuestionIndex][1]);
         answerButton3.setText(answers[currentQuestionIndex][2]);
         answerButton4.setText(answers[currentQuestionIndex][3]);
+    }
+
+    // Hantera slutet av en runda
+    private static void handleEndOfRound() {
+        JOptionPane.showMessageDialog(frame, "Runda " + currentRound + " är över!");
+        currentQuestionIndex = 0;
+        currentRound++;
+        if (currentRound <= TOTAL_ROUNDS) {
+            frame.remove(questionPanel);
+            frame.add(categoryPanel, BorderLayout.CENTER);
+        } else {
+            JOptionPane.showMessageDialog(frame, "Spelet är över! Tack för att du spelade!");
+            frame.remove(questionPanel);
+            frame.add(mainPanel, BorderLayout.CENTER);
+        }
+        frame.revalidate();
+        frame.repaint();
     }
 }
