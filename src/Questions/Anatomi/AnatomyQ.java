@@ -11,6 +11,7 @@ public class AnatomyQ {
     private String answer4;
     private final String welcomeMessage= "Anatomi!";
 
+    //Konstruktor
     public AnatomyQ(String question, String correctanswer, String answer2, String answer3, String answer4) {
         this.question = question;
         this.correctanswer = correctanswer;
@@ -41,7 +42,7 @@ public class AnatomyQ {
         return answer4;
     }
 
-
+//metod för att ta ut alla svar i en stringarray
     public List<String> getAllAnswersInLIst(){
         List <String>answers=new ArrayList<>();
         answers.add(correctanswer);
