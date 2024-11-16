@@ -1,6 +1,6 @@
-import Questions.Geo.DAO_Geografi;
+import Questions.Sub.DAO.DAO_Geografi;
 import Questions.QuestionsAndAnswers;
-import Questions.Sport.DAO_Sport;
+import Questions.Sub.DAO.DAO_Sport;
 
 
 import java.io.Serializable;
