@@ -163,7 +163,7 @@ public class GameInterface {
         JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
         JButton sportButton = new JButton("Sport");
         JButton geoButton = new JButton("Geografi");
-        JButton anatomyButton = new JButton("Anatomi");
+        JButton anatomyButton = new JButton("Anatomy");
 
 
         ActionListener categoryButtonListener = e -> {
@@ -212,6 +212,7 @@ public class GameInterface {
                 break;
             default:
                 System.out.println("Ogiltig kategori");
+                return;
         }
     }
 
