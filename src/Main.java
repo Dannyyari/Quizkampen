@@ -31,6 +31,7 @@ public class Main implements Serializable {
 
         //ropar på databas
       DAO_Geografi geo=new DAO_Geografi();
+
       //tar ut fråga + svar
       List<QuestionsAndAnswers> geografi=geo.getRandomizedList();
       //tar ut en av 2 frågor

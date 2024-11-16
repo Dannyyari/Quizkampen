@@ -22,6 +22,14 @@ public class DAO_Sport implements Serializable{
            e.printStackTrace();
         }
     }
+    public List<String> getListOfAnswers(QuestionsAndAnswers question){
+        List<String> listOfAnswers= new ArrayList<>();
+        listOfAnswers.add(question.getCorrectAnswer());
+        listOfAnswers.add(question.getAnswer2());
+        listOfAnswers.add(question.getAnswer3());
+        listOfAnswers.add(question.getAnswer4());
+        return listOfAnswers;
+    }
 
     //Metod som randomiserar listan av frågor vi har
     public List<QuestionsAndAnswers> getListOfRandomizedSportsQuestion(){
@@ -29,14 +37,6 @@ public class DAO_Sport implements Serializable{
         Collections.shuffle(shuffledQuestions);
         return shuffledQuestions;
     }
-
-    //Tar ut frågan
-    public String getSportQuestionInString(List<QuestionsAndAnswers> randomizedList){
-         randomizedList = getListOfRandomizedSportsQuestion();
-         QuestionsAndAnswers chosenQuestion= randomizedList.get(0);
-        return chosenQuestion.getQuestion();
-    }
-
 
 
 }
