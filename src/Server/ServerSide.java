@@ -7,6 +7,7 @@ public class ServerSide extends Thread {
     Socket socket;
     MultiUser multiUser;
 
+    //
 
     public ServerSide(Socket socket, MultiUser multiUser){
         this.socket=socket;
