@@ -2,6 +2,7 @@ package ServerSide;
 
 import Client.GameGUI;
 import Questions.DAO;
+import Questions.QuestionsAndAnswers;
 import Questions.RoundSettings;
 import Questions.Sub.DAO.DAO_Anatomy;
 import Questions.Sub.DAO.DAO_Geografi;
@@ -12,6 +13,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Server extends Thread {
     Socket socketPlayerOne;
@@ -20,16 +23,28 @@ public class Server extends Thread {
     private static DAO database;
     static RoundSettings settings= settings = new RoundSettings();
 
-    GameGUI game=new GameGUI();
+    private GameGUI game=new GameGUI();
 
+
+    //variabler för resten av logiken
+    private List<QuestionsAndAnswers> questions;
+    private int currentQuestionIndex;
+    private int player1Score;
+    private int player2Score;
     private static int totalQuestions= settings.getQuestions();
     private static int totalRounds = settings.getRounds();
 
+    //Behövs nog bytas till ObjectOutputStream
     private PrintWriter toP1Writer;
     private PrintWriter toP2Writer;
+
+    //dessa två måste någ justeras då vi kommer skicka Seraliserade objekt?
+    //Titta igenom denna fråga och se ifall vi behöver ändra
+
+
+    //Behöver nog bytas till ObjectInputStream
     private BufferedReader fromP1;
     private BufferedReader fromP2;
-
 
 //try(PrintWriter toUser= new PrintWriter(socket.getOutputStream(), true);
 //    BufferedReader fromUser=new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -41,14 +56,17 @@ public class Server extends Thread {
         this.socketPlayerTwo= socketPlayer2;
 
             try {
-                toP1Writer=new PrintWriter(socketPlayer1.getOutputStream(), true);
-                toP2Writer=new PrintWriter(socketPlayer1.getOutputStream(), true);
-                fromP1=new BufferedReader(new InputStreamReader(socketPlayer1.getInputStream()));
-                fromP2=new BufferedReader(new InputStreamReader(socketPlayer2.getInputStream()));
+                this.toP1Writer = new PrintWriter(socketPlayer1.getOutputStream(), true);
+                this.toP2Writer = new PrintWriter(socketPlayer1.getOutputStream(), true);
+                this.fromP1 = new BufferedReader(new InputStreamReader(socketPlayer1.getInputStream()));
+                this.fromP2 = new BufferedReader(new InputStreamReader(socketPlayer2.getInputStream()));
 
-            } catch (Exception e) {
+            //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
+
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+
     }
 
     public void run(){
@@ -83,6 +101,8 @@ public class Server extends Thread {
 //            frame.revalidate();
 //            frame.repaint();
         };
+
+        //oklart hur allt detta ska bort
         sportButton.addActionListener(categoryButtonListener);
         geoButton.addActionListener(categoryButtonListener);
         anatomyButton.addActionListener(categoryButtonListener);
@@ -113,5 +133,31 @@ public class Server extends Thread {
                 return;
         }
     }
+
+
+    //insprererad av chaGPT, väldigt oklart om detta är OK sätt att skicka?
+    //kommer behövas ändras
+    private void sendQuestionToPlayers() {
+        if (currentQuestionIndex < questions.size()) {
+            QuestionsAndAnswers question = questions.get(currentQuestionIndex);
+            String questionText = question.getQuestion();
+            String[] answers = new String[]{
+                    question.getCorrectAnswer(),
+                    question.getAnswer2(),
+                    question.getAnswer3(),
+                    question.getAnswer4()
+            };
+
+            // Skicka frågan och svarsalternativen till båda spelarna
+
+            toP1Writer.println(questionText);
+            toP2Writer.println(questionText);
+            for (String answer : answers) {
+                toP1Writer.println(answer);
+                toP2Writer.println(answer);
+            }
+        }
+    }
+
 
 }

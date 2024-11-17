@@ -4,9 +4,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerListner {
-
+    private int port= 55555;
     public ServerListner() {
-        try (ServerSocket serverSocket = new ServerSocket(55555);) {
+        try (ServerSocket serverSocket = new ServerSocket(port);) {
             while (true){
                 Socket socketForPlayer1= serverSocket.accept();
                 System.out.println("en spelare ansluten");
