@@ -1,3 +1,5 @@
+package Client;
+
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 import Questions.RoundSettings;
@@ -17,26 +19,14 @@ public class GameInterface {
     private static JLabel questionLabel;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
-
-
     private static DAO database;
 
-
-
-    // Frågor och svar
-    private static final String[] questions = {
-            "När var Obama president?",
-            "Vilken planet är känd som den röda planeten?"
-    };
-    private static final String[][] answers = {
-            {"2008 - 2016", "2000 - 2008", "2016 - 2020", "1992 - 2000"},
-            {"Mars", "Venus", "Jupiter", "Saturnus"}
-    };
-
     static RoundSettings settings= settings = new RoundSettings();
+    private static int totalQuestions= settings.getQuestions();
     private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
     private static int currentRound = 1; // Spårar nuvarande runda
+    //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
     public static void main(String[] args) {
@@ -230,7 +220,7 @@ public class GameInterface {
 
         ActionListener answerButtonListener = e -> {
             currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
+            if (currentQuestionIndex < totalQuestions) {
                 loadQuestion();
             } else {
                 handleEndOfRound();
@@ -270,7 +260,7 @@ public class GameInterface {
         if (currentRound <= totalRounds) {
             frame.remove(questionPanel);
             frame.add(categoryPanel, BorderLayout.CENTER);
-        } else {
+        } else{
             JOptionPane.showMessageDialog(frame, "Spelet är över! Tack för att du spelade!");
             frame.remove(questionPanel);
             frame.add(mainPanel, BorderLayout.CENTER);
