@@ -1,6 +1,14 @@
+package Client;
+
+import Questions.DAO;
+import Questions.QuestionsAndAnswers;
+import Questions.RoundSettings;
+import Questions.Sub.DAO.DAO_Anatomy;
+import Questions.Sub.DAO.DAO_Geografi;
+import Questions.Sub.DAO.DAO_Sport;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class GameInterface {
@@ -11,19 +19,15 @@ public class GameInterface {
     private static JLabel questionLabel;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
-    // Frågor och svar
-    private static String[] questions = {
-            "När var Obama president?",
-            "Vilken planet är känd som den röda planeten?"
-    };
-    private static String[][] answers = {
-            {"2008 - 2016", "2000 - 2008", "2016 - 2020", "1992 - 2000"},
-            {"Mars", "Venus", "Jupiter", "Saturnus"}
-    };
+    private static DAO database;
 
+    static RoundSettings settings= settings = new RoundSettings();
+    private static int totalQuestions= settings.getQuestions();
+    private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
     private static int currentRound = 1; // Spårar nuvarande runda
-    private static final int TOTAL_ROUNDS = 2; // Totalt antal rundor
+    //ska detta vara 0?
+    // Totalt antal rundor (baserat på vad som står i properties)
 
     public static void main(String[] args) {
         // Skapa huvudfönstret
@@ -148,10 +152,21 @@ public class GameInterface {
 
         JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
         JButton sportButton = new JButton("Sport");
-        JButton musicButton = new JButton("Musik");
-        JButton scienceButton = new JButton("Vetenskap");
+        JButton geoButton = new JButton("Geografi");
+        JButton anatomyButton = new JButton("Anatomy");
+
 
         ActionListener categoryButtonListener = e -> {
+            String chosenCategory="";
+            if (e.getSource()==sportButton){
+                chosenCategory="Sport";
+            } else if (e.getSource()==geoButton) {
+                chosenCategory="Geografi";
+            } else if (e.getSource()==anatomyButton) {
+                chosenCategory="Anatomy";
+            }
+            setDatabase(chosenCategory);
+
             frame.remove(categoryPanel);
             frame.add(questionPanel, BorderLayout.CENTER);
             loadQuestion();
@@ -160,15 +175,35 @@ public class GameInterface {
         };
 
         sportButton.addActionListener(categoryButtonListener);
-        musicButton.addActionListener(categoryButtonListener);
-        scienceButton.addActionListener(categoryButtonListener);
+        geoButton.addActionListener(categoryButtonListener);
+        anatomyButton.addActionListener(categoryButtonListener);
 
         buttonPanel.add(sportButton);
-        buttonPanel.add(musicButton);
-        buttonPanel.add(scienceButton);
+        buttonPanel.add(geoButton);
+        buttonPanel.add(anatomyButton);
 
         panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
+    }
+    //skapande av kategorival
+    public static void setDatabase(String category) {
+        String pathToSport = "src/Questions/textfiles/SportQuestions";
+        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
+        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
+        switch (category) {
+            case "Sport":
+                database = new DAO_Sport(pathToSport);
+                break;
+            case "Geografi":
+                database = new DAO_Geografi(pathToGeo);
+                break;
+            case "Anatomy":
+                database = new DAO_Anatomy(pathToAnatomy);
+                break;
+            default:
+                System.out.println("Ogiltig kategori");
+                return;
+        }
     }
 
     // Skapa frågepanelen
@@ -185,7 +220,7 @@ public class GameInterface {
 
         ActionListener answerButtonListener = e -> {
             currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
+            if (currentQuestionIndex < totalQuestions) {
                 loadQuestion();
             } else {
                 handleEndOfRound();
@@ -208,11 +243,13 @@ public class GameInterface {
 
     // Ladda aktuell fråga
     private static void loadQuestion() {
-        questionLabel.setText(questions[currentQuestionIndex]);
-        answerButton1.setText(answers[currentQuestionIndex][0]);
-        answerButton2.setText(answers[currentQuestionIndex][1]);
-        answerButton3.setText(answers[currentQuestionIndex][2]);
-        answerButton4.setText(answers[currentQuestionIndex][3]);
+        QuestionsAndAnswers currentQuestion = database.getNextQuestion();
+
+        questionLabel.setText(currentQuestion.getQuestion());
+        answerButton1.setText(currentQuestion.getCorrectAnswer());
+        answerButton2.setText(currentQuestion.getAnswer2());
+        answerButton3.setText(currentQuestion.getAnswer3());
+        answerButton4.setText(currentQuestion.getAnswer4());
     }
 
     // Hantera slutet av en runda
@@ -220,10 +257,10 @@ public class GameInterface {
         JOptionPane.showMessageDialog(frame, "Runda " + currentRound + " är över!");
         currentQuestionIndex = 0;
         currentRound++;
-        if (currentRound <= TOTAL_ROUNDS) {
+        if (currentRound <= totalRounds) {
             frame.remove(questionPanel);
             frame.add(categoryPanel, BorderLayout.CENTER);
-        } else {
+        } else{
             JOptionPane.showMessageDialog(frame, "Spelet är över! Tack för att du spelade!");
             frame.remove(questionPanel);
             frame.add(mainPanel, BorderLayout.CENTER);

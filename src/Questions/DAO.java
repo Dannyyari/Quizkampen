@@ -11,8 +11,15 @@ import java.util.List;
 
 public class DAO implements Serializable {
     List<QuestionsAndAnswers> QnA=new ArrayList<>();
+    private int currentIndex=0;
+    private String path;
 
     public DAO(String path){
+        this.path=path;
+        loader();
+    }
+
+    private void loader(){
         try (BufferedReader reader=new BufferedReader(new FileReader(path))){
             String temp;
             while ((temp=reader.readLine())!=null){
@@ -36,5 +43,18 @@ public class DAO implements Serializable {
         List<QuestionsAndAnswers> shuffledQuestions = new ArrayList<>(QnA);
         Collections.shuffle(shuffledQuestions);
         return shuffledQuestions;
+    }
+    public String getQuestion(String question){
+       QuestionsAndAnswers qna=null;
+        String que=qna.getQuestion();
+       return que;
+    }
+    public QuestionsAndAnswers getNextQuestion() {
+        if (currentIndex < QnA.size()) {
+            QuestionsAndAnswers question= QnA.get(currentIndex);
+            currentIndex++;
+            return question;
+        }
+        return null;  // Om vi har hämtat alla frågor
     }
 }
