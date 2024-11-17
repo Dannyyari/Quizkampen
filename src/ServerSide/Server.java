@@ -1,14 +1,14 @@
-package Server;
+package ServerSide;
 
 import java.io.*;
 import java.net.Socket;
 
-public class ServerSide extends Thread {
+public class Server extends Thread {
     Socket socket;
     MultiUser multiUser;
 
 
-    public ServerSide(Socket socket, MultiUser multiUser){
+    public Server(Socket socket, MultiUser multiUser){
         this.socket=socket;
         this.multiUser=multiUser;
     }
