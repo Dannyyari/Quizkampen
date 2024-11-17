@@ -7,8 +7,7 @@ import java.util.List;
 public class MultiUser {
 
     //klass som gör att vi kan ha flera användare som ansluter sig
-
-
+    
     List<PrintWriter> writers= new ArrayList<PrintWriter>();
 
     //metod för att lägga till en instans av printwriter
