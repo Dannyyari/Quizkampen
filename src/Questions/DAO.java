@@ -44,6 +44,7 @@ public class DAO implements Serializable {
         Collections.shuffle(shuffledQuestions);
         return shuffledQuestions;
     }
+
     public String getQuestion(String question){
        QuestionsAndAnswers qna=null;
         String que=qna.getQuestion();

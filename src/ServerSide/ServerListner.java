@@ -1,4 +1,4 @@
-package Server;
+package ServerSide;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,13 +10,12 @@ public class ServerListner {
         try (ServerSocket serverSocket = new ServerSocket(55555);) {
             while (true){
                 Socket socket= serverSocket.accept();
-                ServerSide ss=new ServerSide(socket, mu);
+                Server ss=new Server(socket, mu);
                 ss.start();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-//aa
     }
 
     public static void main(String[] args) {
