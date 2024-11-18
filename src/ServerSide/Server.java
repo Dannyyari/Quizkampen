@@ -38,11 +38,11 @@ public class Server extends Thread {
     private static int totalQuestions = settings.getQuestions();
     private static int totalRounds = settings.getRounds();
 
-    //dessa två måste någ justeras då vi kommer skicka Seraliserade objekt?
-    //Titta igenom denna fråga och se ifall vi behöver ändra
+    // dessa två måste någ justeras då vi kommer skicka Seraliserade objekt?
+    // Titta igenom denna fråga och se ifall vi behöver ändra
 
-// try(PrintWriter toUser= new PrintWriter(socket.getOutputStream(), true);
-//    BufferedReader fromUser=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    // try(PrintWriter toUser= new PrintWriter(socket.getOutputStream(), true);
+    // BufferedReader fromUser=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 
     //kopplar två spelare
@@ -62,11 +62,12 @@ public class Server extends Thread {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
-
     }
 
     public void run(){
     }
+
+
     private static JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
@@ -110,6 +111,8 @@ public class Server extends Thread {
         panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
     }
+
+
     public static void setDatabase(String category) {
         String pathToSport = "src/Questions/textfiles/SportQuestions";
         String pathToGeo = "src/Questions/textfiles/GeoQuestions";
@@ -133,19 +136,48 @@ public class Server extends Thread {
 
     //insprererad av chaGPT, väldigt oklart om detta är OK sätt att skicka?
     //kommer behövas ändras
-    private void sendQuestionToPlayers() {
+    private void sendQuestionToPlayers() throws IOException {
         if (currentQuestionIndex < questions.size()) {
             QuestionsAndAnswers question = questions.get(currentQuestionIndex);
+
+            toPlayerOne.writeObject(question);
+            toPlayerTwo.writeObject(question);
+        }
+    }
+
+    // Ingen aning om vad "ClassNotFoundException" är men den kom till när jag skrev ".readObject."
+    private void receiveAndCheckAnswersFromPlayers() throws IOException, ClassNotFoundException {
+        int playerOneAnswer = (int) fromPlayerOne.readObject();
+        int playerTwoAnswer = (int) fromPlayerTwo.readObject();
+
+        QuestionsAndAnswers question = questions.get(currentQuestionIndex);
+
+        if (playerOneAnswer == question.getCorrectAnswer()) {
+            toPlayerOne.writeObject("Rätt Svar!");
+        } else {
+            toPlayerOne.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
+        }
+
+        if (playerTwoAnswer == question.getCorrectAnswer()) {
+            toPlayerTwo.writeObject("Rätt Svar!");
+        } else {
+            toPlayerTwo.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
+        }
+
+        currentQuestionIndex++;
+    }
+}
+
+    /*
+            // JAG TROR INTE DET HÄR BEHÖVS, KOMMENTERAR UT FOR NOW.
             String questionText = question.getQuestion();
             String[] answers = new String[]{
                     question.getCorrectAnswer(),
                     question.getAnswer2(),
                     question.getAnswer3(),
-                    question.getAnswer4()
-            };
+                    question.getAnswer4()};
 
             // Skicka frågan och svarsalternativen till båda spelarna
-
             toPlayerOneWriter.println(questionText);
             toPlayerTwoWriter.println(questionText);
             for (String answer : answers) {
@@ -154,6 +186,5 @@ public class Server extends Thread {
             }
         }
     }
+    */
 
-
-}
