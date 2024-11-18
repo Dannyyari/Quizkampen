@@ -4,10 +4,6 @@ import Client.GameGUI;
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 import Questions.RoundSettings;
-import Questions.Sub.DAO.DAO_Anatomy;
-import Questions.Sub.DAO.DAO_Geografi;
-import Questions.Sub.DAO.DAO_Sport;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -54,8 +50,6 @@ public class Server extends Thread {
                 fromPlayerOne = new ObjectInputStream(playerOneSocket.getInputStream());
                 fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getInputStream());
 
-            //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
-
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
@@ -63,6 +57,12 @@ public class Server extends Thread {
     }
 
     public void run(){
+        //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
+        try {
+            sendQuestionToPlayers();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -117,13 +117,13 @@ public class Server extends Thread {
         String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
         switch (category) {
             case "Sport":
-                database = new DAO_Sport(pathToSport);
+                database = new DAO(pathToSport);
                 break;
             case "Geografi":
-                database = new DAO_Geografi(pathToGeo);
+                database = new DAO(pathToGeo);
                 break;
             case "Anatomy":
-                database = new DAO_Anatomy(pathToAnatomy);
+                database = new DAO(pathToAnatomy);
                 break;
             default:
                 System.out.println("Ogiltig kategori");
@@ -145,13 +145,13 @@ public class Server extends Thread {
 
     // Ingen aning om vad "ClassNotFoundException" är men den kom till när jag skrev ".readObject."
     private void receiveAndCheckAnswersFromPlayers() throws IOException, ClassNotFoundException {
-        int playerOneAnswer = (int) fromPlayerOne.readObject();
-        int playerTwoAnswer = (int) fromPlayerTwo.readObject();
+        String playerOneAnswer = (String) fromPlayerOne.readObject();
+        String playerTwoAnswer = (String) fromPlayerTwo.readObject();
 
         QuestionsAndAnswers question = questions.get(currentQuestionIndex);
 
         // Vet ej varför dom blir röda, men kanske inte ens behövs?
-        if (playerOneAnswer == question.getCorrectAnswer()) {
+        if (playerOneAnswer.equalsIgnoreCase(question.getCorrectAnswer()) ) {
             toPlayerOne.writeObject("Rätt Svar!");
         } else {
             toPlayerOne.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());

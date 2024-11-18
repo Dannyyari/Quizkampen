@@ -39,17 +39,7 @@ public class DAO implements Serializable {
         listOfAnswers.add(question.getAnswer4());
         return listOfAnswers;
     }
-    public List<QuestionsAndAnswers> getListOfRandomizedSportsQuestion(){
-        List<QuestionsAndAnswers> shuffledQuestions = new ArrayList<>(QnA);
-        Collections.shuffle(shuffledQuestions);
-        return shuffledQuestions;
-    }
 
-    public String getQuestion(String question){
-       QuestionsAndAnswers qna=null;
-        String que=qna.getQuestion();
-       return que;
-    }
     public QuestionsAndAnswers getNextQuestion() {
         if (currentIndex < QnA.size()) {
             QuestionsAndAnswers question= QnA.get(currentIndex);
@@ -57,5 +47,9 @@ public class DAO implements Serializable {
             return question;
         }
         return null;  // Om vi har hämtat alla frågor
+    }
+
+    public List<QuestionsAndAnswers> getQnA(DAO dao){
+        return QnA;
     }
 }

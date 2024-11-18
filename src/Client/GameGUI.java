@@ -3,9 +3,6 @@ package Client;
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 import Questions.RoundSettings;
-import Questions.Sub.DAO.DAO_Anatomy;
-import Questions.Sub.DAO.DAO_Geografi;
-import Questions.Sub.DAO.DAO_Sport;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +14,7 @@ public class GameGUI {
     public GameGUI(Client client) {
         this.client = client;
     }
+    public GameGUI(){}
 
     // Huvudkomponenter
     private static JFrame frame;
@@ -26,7 +24,7 @@ public class GameGUI {
 
     private static DAO database;
 
-    static RoundSettings settings= settings = new RoundSettings();
+    static RoundSettings settings;
     private static int totalQuestions= settings.getQuestions();
     private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
@@ -34,7 +32,7 @@ public class GameGUI {
     //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
-    public static void main(String[] args) {
+  /*  public static void main(String[] args) {
         // Skapa huvudfönstret
         frame = new JFrame("Game Interface");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -55,7 +53,7 @@ public class GameGUI {
 
         // Visa huvudfönstret
         frame.setVisible(true);
-    }
+    }*/
 
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
@@ -197,13 +195,13 @@ public class GameGUI {
         String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
         switch (category) {
             case "Sport":
-                database = new DAO_Sport(pathToSport);
+                database = new DAO("src/Questions/textfiles/SportQuestions");
                 break;
             case "Geografi":
-                database = new DAO_Geografi(pathToGeo);
+                database = new DAO("src/Questions/textfiles/GeoQuestions");
                 break;
             case "Anatomy":
-                database = new DAO_Anatomy(pathToAnatomy);
+                database = new DAO("src/Questions/textfiles/AnatomyQuestions");
                 break;
             default:
                 System.out.println("Ogiltig kategori");
