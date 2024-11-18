@@ -13,57 +13,53 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Server extends Thread {
-    Socket socketPlayerOne;
-    Socket socketPlayerTwo;
+    Socket playerOneSocket;
+    Socket playerTwoSocket;
+
+    private GameGUI game = new GameGUI();
+
+    private List<QuestionsAndAnswers> questions;
+    private int currentQuestionIndex; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
+
+    private ObjectOutputStream toPlayerOne;
+    private ObjectOutputStream toPlayerTwo;
+    private ObjectInputStream fromPlayerOne;
+    private ObjectInputStream fromPlayerTwo;
 
     private static DAO database;
-    static RoundSettings settings= settings = new RoundSettings();
-
-    private GameGUI game=new GameGUI();
-
+    static RoundSettings settings = settings = new RoundSettings();
 
     //variabler för resten av logiken
-    private List<QuestionsAndAnswers> questions;
-    private int currentQuestionIndex;
-    private int player1Score;
-    private int player2Score;
-    private static int totalQuestions= settings.getQuestions();
+    private int playerOneScore;
+    private int playerTwoScore;
+    private static int totalQuestions = settings.getQuestions();
     private static int totalRounds = settings.getRounds();
-
-    //Behövs nog bytas till ObjectOutputStream
-    private PrintWriter toP1Writer;
-    private PrintWriter toP2Writer;
 
     //dessa två måste någ justeras då vi kommer skicka Seraliserade objekt?
     //Titta igenom denna fråga och se ifall vi behöver ändra
 
-
-    //Behöver nog bytas till ObjectInputStream
-    private BufferedReader fromP1;
-    private BufferedReader fromP2;
-
-//try(PrintWriter toUser= new PrintWriter(socket.getOutputStream(), true);
+// try(PrintWriter toUser= new PrintWriter(socket.getOutputStream(), true);
 //    BufferedReader fromUser=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 
     //kopplar två spelare
-    public Server(Socket socketPlayer1, Socket socketPlayer2){
-        this.socketPlayerOne= socketPlayer1;
-        this.socketPlayerTwo= socketPlayer2;
+    public Server(Socket socketPlayerOne, Socket socketPlayerTwo) throws IOException {
+        this.playerOneSocket = socketPlayerOne;
+        this.playerTwoSocket = socketPlayerTwo;
 
             try {
-                this.toP1Writer = new PrintWriter(socketPlayer1.getOutputStream(), true);
-                this.toP2Writer = new PrintWriter(socketPlayer1.getOutputStream(), true);
-                this.fromP1 = new BufferedReader(new InputStreamReader(socketPlayer1.getInputStream()));
-                this.fromP2 = new BufferedReader(new InputStreamReader(socketPlayer2.getInputStream()));
+                toPlayerOne = new ObjectOutputStream(playerOneSocket.getOutputStream());
+                toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getOutputStream());
+                fromPlayerOne = new ObjectInputStream(playerOneSocket.getInputStream());
+                fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getInputStream());
 
             //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
 
             } catch (IOException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
 
@@ -150,11 +146,11 @@ public class Server extends Thread {
 
             // Skicka frågan och svarsalternativen till båda spelarna
 
-            toP1Writer.println(questionText);
-            toP2Writer.println(questionText);
+            toPlayerOneWriter.println(questionText);
+            toPlayerTwoWriter.println(questionText);
             for (String answer : answers) {
-                toP1Writer.println(answer);
-                toP2Writer.println(answer);
+                toPlayerOneWriter.println(answer);
+                toPlayerTwoWriter.println(answer);
             }
         }
     }
