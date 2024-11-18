@@ -19,8 +19,6 @@ public class Server extends Thread {
     Socket playerOneSocket;
     Socket playerTwoSocket;
 
-    private GameGUI game = new GameGUI();
-
     private List<QuestionsAndAnswers> questions;
     private int currentQuestionIndex; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
 
@@ -152,12 +150,14 @@ public class Server extends Thread {
 
         QuestionsAndAnswers question = questions.get(currentQuestionIndex);
 
+        // Vet ej varför dom blir röda, men kanske inte ens behövs?
         if (playerOneAnswer == question.getCorrectAnswer()) {
             toPlayerOne.writeObject("Rätt Svar!");
         } else {
             toPlayerOne.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
         }
 
+        // Vet ej varför dom blir röda, men kanske inte ens behövs?
         if (playerTwoAnswer == question.getCorrectAnswer()) {
             toPlayerTwo.writeObject("Rätt Svar!");
         } else {

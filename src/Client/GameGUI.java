@@ -12,6 +12,11 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 public class GameGUI {
+    private Client client;
+
+    public GameGUI(Client client) {
+        this.client = client;
+    }
 
     // Huvudkomponenter
     private static JFrame frame;
@@ -251,6 +256,8 @@ public class GameGUI {
         answerButton3.setText(currentQuestion.getAnswer3());
         answerButton4.setText(currentQuestion.getAnswer4());
     }
+
+
 
     // Hantera slutet av en runda
     private static void handleEndOfRound() {
