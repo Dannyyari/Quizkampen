@@ -8,15 +8,18 @@ import Questions.Sub.DAO.DAO_Geografi;
 import Questions.Sub.DAO.DAO_Sport;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-public class GameInterface {
+public class GameGUI {
 
     // Huvudkomponenter
     private static JFrame frame;
     private static JPanel mainPanel, categoryPanel, questionPanel;
-    private static JLabel questionLabel;
+    private static JLabel questionLabel, scoreLabel;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
     private static DAO database;
@@ -26,6 +29,7 @@ public class GameInterface {
     private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
     private static int currentRound = 1; // Spårar nuvarande runda
+
     //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
@@ -52,8 +56,73 @@ public class GameInterface {
         frame.setVisible(true);
     }
 
-    // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(34, 40, 49));
+
+        // Toppanel med spelartur och poäng
+        JPanel topPanel = new JPanel(new GridLayout(2, 1));
+        topPanel.setBackground(new Color(57, 62, 70));
+        topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JLabel turnLabel = new JLabel("Din Tur", SwingConstants.CENTER);
+        turnLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
+        turnLabel.setForeground(new Color(238, 238, 238));
+
+        scoreLabel = new JLabel("Spelare: 0 - Motståndare: 0", SwingConstants.CENTER);
+        scoreLabel.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        scoreLabel.setForeground(Color.LIGHT_GRAY);
+
+        topPanel.add(turnLabel);
+        topPanel.add(scoreLabel);
+
+        // Bottenpanel med Spela knappen
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(new Color(34, 40, 49));
+        JButton playButton = new JButton("Spela");
+        styleButton(playButton);
+        bottomPanel.add(playButton);
+
+        // Klickhändelse för Spela knappen
+        playButton.addActionListener(e -> switchToPanel(categoryPanel));
+
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+    private static void styleButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setFont(new Font("SansSerif", Font.BOLD, 18));
+        button.setBackground(new Color(0, 173, 181));
+        button.setForeground(Color.WHITE);
+        button.setBorder(new CompoundBorder(
+                new LineBorder(Color.BLACK, 2, true),
+                new EmptyBorder(10, 20, 10, 20)
+        ));
+
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(0, 150, 157));
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(0, 173, 181));
+            }
+        });
+    }
+
+    // För att Byta panelerna enklare
+    private static void switchToPanel(JPanel panel) {
+        frame.getContentPane().removeAll();
+        frame.add(panel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
+    /* private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
         // Toppanel
@@ -102,6 +171,8 @@ public class GameInterface {
 
         return panel;
     }
+
+     */
 
     // Skapa cirkelpanelen för poängvisning
     private static JPanel getCirclesPanel() {
