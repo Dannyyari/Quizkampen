@@ -11,7 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-public class GameInterface {
+public class GameGUI {
 
     // Huvudkomponenter
     private static JFrame frame;
