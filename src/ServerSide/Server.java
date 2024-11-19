@@ -2,21 +2,29 @@ package ServerSide;
 
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
-import Questions.RoundSettings;
+import Properties.RoundSettings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.net.Socket;
 import java.util.List;
 
 public class Server extends Thread {
     ServerSidePlayer playerOneSocket;
     ServerSidePlayer playerTwoSocket;
 
+
     private List<QuestionsAndAnswers> questions;
     private int currentQuestionIndex; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
+    private String pathToSport = "src/Questions/textfiles/SportQuestions";
+    private String pathToGeo = "src/Questions/textfiles/GeoQuestions";
+    private String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
+
+    private DAO sportQuestions= new DAO("Sport", pathToSport);
+    private DAO anatomyQuestions= new DAO("Anatomy", pathToAnatomy);
+    private DAO geoQuestions=new DAO("Geography", pathToGeo);
+
 
     private ObjectOutputStream toPlayerOne;
     private ObjectOutputStream toPlayerTwo;
@@ -89,15 +97,8 @@ public class Server extends Thread {
             } else if (e.getSource() == anatomyButton) {
                 chosenCategory = "Anatomy";
             }
-            setDatabase(chosenCategory);
 
-            //OKLART HUR DETTA SKA IMPLEMENTERAS
 
-//            frame.remove(categoryPanel);
-//            frame.add(questionPanel, BorderLayout.CENTER);
-//            loadQuestion();
-//            frame.revalidate();
-//            frame.repaint();
         };
 
         //oklart hur allt detta ska bort
@@ -114,25 +115,26 @@ public class Server extends Thread {
     }
 
 
-    public static void setDatabase(String category) {
-        String pathToSport = "src/Questions/textfiles/SportQuestions";
-        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-        switch (category) {
-            case "Sport":
-                database.getInstaceOfQuestionsAndAnswersSPORT(database);
-                break;
-            case "Geografi":
-                database = new DAO(pathToGeo);
-                break;
-            case "Anatomy":
-                database = new DAO(pathToAnatomy);
-                break;
-            default:
-                System.out.println("Ogiltig kategori");
-                return;
-        }
-    }
+    //BORT men kanske behålla switch case?
+//    public static void setDatabase(String category) {
+//        String pathToSport = "src/Questions/textfiles/SportQuestions";
+//        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
+//        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
+//        switch (category) {
+//            case "Sport":
+//
+//                break;
+//            case "Geografi":
+//                database = new DAO(pathToGeo);
+//                break;
+//            case "Anatomy":
+//                database = new DAO(pathToAnatomy);
+//                break;
+//            default:
+//                System.out.println("Ogiltig kategori");
+//                return;
+//        }
+//    }
 
 
     //insprererad av chaGPT, väldigt oklart om detta är OK sätt att skicka?
@@ -171,23 +173,4 @@ public class Server extends Thread {
     }
 }
 
-    /*
-            // JAG TROR INTE DET HÄR BEHÖVS, KOMMENTERAR UT FOR NOW.
-            String questionText = question.getQuestion();
-            String[] answers = new String[]{
-                    question.getCorrectAnswer(),
-                    question.getAnswer2(),
-                    question.getAnswer3(),
-                    question.getAnswer4()};
-
-            // Skicka frågan och svarsalternativen till båda spelarna
-            toPlayerOneWriter.println(questionText);
-            toPlayerTwoWriter.println(questionText);
-            for (String answer : answers) {
-                toPlayerOneWriter.println(answer);
-                toPlayerTwoWriter.println(answer);
-            }
-        }
-    }
-    */
 

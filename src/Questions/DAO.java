@@ -5,14 +5,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DAO implements Serializable {
-    List<QuestionsAndAnswers> QnA=new ArrayList<>();
-    private int currentIndex=0;
+    List<QuestionsAndAnswers> QuestionsAndAnswers =new ArrayList<>();
     private String path;
+    private String category;
 
-    public DAO(String path){
+
+    public DAO(String category, String path){
+        this.category=category;
         this.path=path;
         loader();
     }
@@ -22,17 +25,20 @@ public class DAO implements Serializable {
             String temp;
             while ((temp=reader.readLine())!=null){
                 String[] strArray=temp.split(", ");
-                QnA.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4] ));
+                QuestionsAndAnswers.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4] ));
             }
+
         }catch (IOException e){
             e.printStackTrace();
         }
     }
 
+    //Så vi kan skicka kategori namn till klient
+    public String getCategory() {
+        return category;
+    }
 
-    //Enbart denna fil då vi vill att Server skickar List of Question and Answer
-    public List<QuestionsAndAnswers> getInstaceOfQuestionsAndAnswersSPORT(DAO dao){
-        dao= new DAO("src/Questions/textfiles/SportQuestions");
-        return QnA;
+    public List<Questions.QuestionsAndAnswers> getQuestionsAndAnswers() {
+        return QuestionsAndAnswers;
     }
 }

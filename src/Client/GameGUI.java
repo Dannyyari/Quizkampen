@@ -2,7 +2,7 @@ package Client;
 
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
-import Questions.RoundSettings;
+import Properties.RoundSettings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,11 +28,14 @@ public class GameGUI extends Thread implements Serializable {
     private List<QuestionsAndAnswers> anatomyQnA;
     private List<QuestionsAndAnswers> geoQnA;
     private List<QuestionsAndAnswers> sportQnA;
+    private List<QuestionsAndAnswers> hisotryQnA;
+
 
     // Huvudkomponenter
     private static JFrame frame;
     private static JPanel mainPanel, categoryPanel, questionPanel;
     private static JLabel questionLabel;
+    private List<JButton> answerbuttons;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
 
@@ -54,7 +57,9 @@ public class GameGUI extends Thread implements Serializable {
             String stringFormServer;
 
             while ((fromServer =  inFromServer.readObject())!=null){
-                if (inFromServer instanceof <QuestionsAndAnswers> listan){
+                Object o = ((List) fromServer).get(0);
+                if (o instanceof QuestionsAndAnswers listan){
+                    //gör en cast på hela listan, safe för du vet typen
                     anatomyQnA.add(listan);
                 }
             }
@@ -64,8 +69,11 @@ public class GameGUI extends Thread implements Serializable {
             throw new RuntimeException(e);
         }
     }
+    public void run(){
+        GameGUI c=new GameGUI();
+    }
 
-
+/*
   public static void main(String[] args) {
         GameGUI c=new GameGUI();
 
@@ -92,7 +100,7 @@ public class GameGUI extends Thread implements Serializable {
         // Visa huvudfönstret
         frame.setVisible(true);
     }
-
+*/
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -206,11 +214,11 @@ public class GameGUI extends Thread implements Serializable {
             } else if (e.getSource()==anatomyButton) {
                 chosenCategory="Anatomy";
             }
-            setDatabase(chosenCategory);
+
 
             frame.remove(categoryPanel);
             frame.add(questionPanel, BorderLayout.CENTER);
-            loadQuestion();
+            //loadQuestion();
             frame.revalidate();
             frame.repaint();
         };
@@ -226,26 +234,7 @@ public class GameGUI extends Thread implements Serializable {
         panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
     }
-    //skapande av kategorival
-    public static void setDatabase(String category) {
-        String pathToSport = "src/Questions/textfiles/SportQuestions";
-        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-        switch (category) {
-            case "Sport":
-                new DAO("src/Questions/textfiles/SportQuestions");
-                break;
-            case "Geografi":
-                 new DAO("src/Questions/textfiles/GeoQuestions");
-                break;
-            case "Anatomy":
-                 new DAO("src/Questions/textfiles/AnatomyQuestions");
-                break;
-            default:
-                System.out.println("Ogiltig kategori");
-                return;
-        }
-    }
+
 
     // Skapa frågepanelen
     private static JPanel createQuestionPanel() {
@@ -262,7 +251,7 @@ public class GameGUI extends Thread implements Serializable {
         ActionListener answerButtonListener = e -> {
             currentQuestionIndex++;
             if (currentQuestionIndex < totalQuestions) {
-                loadQuestion();
+               // loadQuestion();
             } else {
                 handleEndOfRound();
             }
@@ -283,8 +272,11 @@ public class GameGUI extends Thread implements Serializable {
     }
 
     // Ladda aktuell fråga
+    //kommer det gå att ha denna metod för att ladda in frågorna?
+    //De kommer sparas i varsin List <QuestionsAndAnswers>
+   /*
     private static void loadQuestion() {
-        QuestionsAndAnswers currentQuestion = database.getNextQuestion();
+        QuestionsAndAnswers currentQuestion =
 
         questionLabel.setText(currentQuestion.getQuestion());
         answerButton1.setText(currentQuestion.getCorrectAnswer());
@@ -292,7 +284,7 @@ public class GameGUI extends Thread implements Serializable {
         answerButton3.setText(currentQuestion.getAnswer3());
         answerButton4.setText(currentQuestion.getAnswer4());
     }
-
+*/
 
 
     // Hantera slutet av en runda

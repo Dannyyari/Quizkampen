@@ -8,7 +8,6 @@ public class QuestionsAndAnswers implements Serializable {
     private String answer2;
     private String answer3;
     private String answer4;
-
     public QuestionsAndAnswers(String question, String correctAnswer, String answer2, String answer3, String answer4) {
         Question = question;
         CorrectAnswer = correctAnswer;
@@ -16,6 +15,7 @@ public class QuestionsAndAnswers implements Serializable {
         this.answer3 = answer3;
         this.answer4 = answer4;
     }
+
 
     public String getQuestion() {
         return Question;

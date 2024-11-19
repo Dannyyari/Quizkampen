@@ -15,7 +15,6 @@ public class ServerListner {
             System.out.println("QUIZKAMPEN");
             System.out.println();
             while (!serverSocket.isClosed()){
-
                 ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), "Emil");
                 Socket socketForPlayer1= serverSocket.accept();
                 System.out.println("en spelare ansluten");
