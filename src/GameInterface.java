@@ -6,39 +6,39 @@ import java.awt.*;
 
 public class GameInterface {
 
-    // Huvudkomponenter
+
     private static JFrame frame;
     private static JPanel mainPanel, categoryPanel, questionPanel;
     private static JLabel questionLabel, scoreLabel;
 
     public static void main(String[] args) {
-        // Skapar huvudfönstret
+
         frame = new JFrame("Game Interface");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 400);
         frame.setLayout(new BorderLayout());
         frame.setBackground(new Color(50, 50, 50));
 
-        // Huvudpanelen
+
         mainPanel = createMainPanel();
 
-        // Kategoripanelen
+
         categoryPanel = createCategoryPanel();
 
-        // Frågepanelen
+
         questionPanel = createQuestionPanel();
 
-        // Lägger till huvudpanelen till fönstret
+
         frame.add(mainPanel, BorderLayout.CENTER);
         frame.setVisible(true);
     }
 
-    // Skapar huvudpanelen med spel och poänginformation
+
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(34, 40, 49));
 
-        // Toppanel med spelartur och poäng
+
         JPanel topPanel = new JPanel(new GridLayout(2, 1));
         topPanel.setBackground(new Color(57, 62, 70));
         topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -54,14 +54,14 @@ public class GameInterface {
         topPanel.add(turnLabel);
         topPanel.add(scoreLabel);
 
-        // Bottenpanel med Spela knappen
+
         JPanel bottomPanel = new JPanel();
         bottomPanel.setBackground(new Color(34, 40, 49));
         JButton playButton = new JButton("Spela");
         styleButton(playButton);
         bottomPanel.add(playButton);
 
-        // Klickhändelse för Spela knappen
+
         playButton.addActionListener(e -> switchToPanel(categoryPanel));
 
         panel.add(topPanel, BorderLayout.NORTH);
@@ -69,6 +69,7 @@ public class GameInterface {
 
         return panel;
     }
+
 
     // Skapar kategoripanelen
     private static JPanel createCategoryPanel() {
@@ -84,7 +85,7 @@ public class GameInterface {
         buttonPanel.setBackground(new Color(34, 40, 49));
         buttonPanel.setBorder(new EmptyBorder(20, 40, 20, 40));
 
-        // Skapar knappar för olika kategorier
+
         JButton sportButton = new JButton("Sport");
         JButton musicButton = new JButton("Musik");
         JButton scienceButton = new JButton("Vetenskap");
@@ -93,12 +94,12 @@ public class GameInterface {
         styleButton(musicButton);
         styleButton(scienceButton);
 
-        // Lägger till klickhändelser för varje knapp
+
         sportButton.addActionListener(e -> showQuestion("Sport"));
         musicButton.addActionListener(e -> showQuestion("Musik"));
         scienceButton.addActionListener(e -> showQuestion("Vetenskap"));
 
-        // Lägger till knappar till panelen
+
         buttonPanel.add(sportButton);
         buttonPanel.add(musicButton);
         buttonPanel.add(scienceButton);
@@ -166,7 +167,7 @@ public class GameInterface {
         switchToPanel(questionPanel);
     }
 
-    // För att Byta panelerna enklare
+
     private static void switchToPanel(JPanel panel) {
         frame.getContentPane().removeAll();
         frame.add(panel);

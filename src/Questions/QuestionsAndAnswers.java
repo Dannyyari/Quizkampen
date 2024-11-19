@@ -15,6 +15,8 @@ public class QuestionsAndAnswers {
         this.answer4 = answer4;
     }
 
+
+
     public String getQuestion() {
         return Question;
     }
@@ -35,6 +37,8 @@ public class QuestionsAndAnswers {
         return answer4;
     }
 
+
+
     @Override
     public String toString() {
         return
@@ -44,4 +48,7 @@ public class QuestionsAndAnswers {
                 ", " + answer3 +
                 ", " + answer4;
     }
+
+
+
 }

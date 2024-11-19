@@ -58,4 +58,8 @@ public class DAO implements Serializable {
         }
         return null;  // Om vi har hämtat alla frågor
     }
+
+    public QuestionsAndAnswers getCurrentQuestion() {
+        return QnA.get(currentIndex);
+    }
 }
