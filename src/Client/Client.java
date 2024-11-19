@@ -31,13 +31,6 @@ public class Client extends Thread implements Serializable {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        Client client=new Client();
-
-    }
-
-    public void startGame() throws IOException {
-    }
 
 //    public void sendAnswer(int answerIndex) throws IOException {
 //        outToServer.writeObject(answerIndex);

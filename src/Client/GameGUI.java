@@ -70,8 +70,13 @@ public class GameGUI extends Thread implements Serializable {
         }
     }
     public void run(){
-        GameGUI c=new GameGUI();
+        new GameGUI();
     }
+
+    public static void main(String[] args) {
+        new GameGUI().start();
+    }
+
 
 /*
   public static void main(String[] args) {
