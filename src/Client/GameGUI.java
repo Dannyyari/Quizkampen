@@ -15,6 +15,12 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 public class GameGUI {
+    private Client client;
+
+    public GameGUI(Client client) {
+        this.client = client;
+    }
+    public GameGUI(){}
 
     // Huvudkomponenter
     private static JFrame frame;
@@ -23,13 +29,14 @@ public class GameGUI {
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
     private static DAO database;
-    static RoundSettings settings = new RoundSettings();
-    private static int totalQuestions = settings.getQuestions();
+
+    static RoundSettings settings;
+    private static int totalQuestions= settings.getQuestions();
     private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
     private static int currentRound = 1; // Spårar nuvarande runda
 
-    public static void main(String[] args) {
+  /*  public static void main(String[] args) {
         // Skapa huvudfönstret
         frame = new JFrame("Game Interface");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -50,8 +57,9 @@ public class GameGUI {
 
         // Visa huvudfönstret
         frame.setVisible(true);
-    }
+    }*/
 
+    // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(0, 181, 181));
@@ -117,7 +125,23 @@ public class GameGUI {
         frame.repaint();
     }
 
+        // Cirklar för Motståndare, rad 2
+        JPanel player2CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player2Circle3 = new JLabel("O");
+        JLabel player2Circle4 = new JLabel("O");
+        player2CirclesPanel2.add(player2Circle3);
+        player2CirclesPanel2.add(player2Circle4);
 
+        // Lägg till alla cirkelpaneler
+        circlesPanel.add(player1CirclesPanel1);
+        circlesPanel.add(player2CirclesPanel1);
+        circlesPanel.add(player1CirclesPanel2);
+        circlesPanel.add(player2CirclesPanel2);
+
+        return circlesPanel;
+    }
+
+    // Skapa kategoripanelen
     private static JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(183, 239, 41));
@@ -159,23 +183,24 @@ public class GameGUI {
         panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
     }
-
+    //skapande av kategorival
     public static void setDatabase(String category) {
         String pathToSport = "src/Questions/textfiles/SportQuestions";
         String pathToGeo = "src/Questions/textfiles/GeoQuestions";
         String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
         switch (category) {
             case "Sport":
-                database = new DAO_Sport(pathToSport);
+                database = new DAO("src/Questions/textfiles/SportQuestions");
                 break;
             case "Geografi":
-                database = new DAO_Geografi(pathToGeo);
+                database = new DAO("src/Questions/textfiles/GeoQuestions");
                 break;
             case "Anatomy":
-                database = new DAO_Anatomy(pathToAnatomy);
+                database = new DAO("src/Questions/textfiles/AnatomyQuestions");
                 break;
             default:
                 System.out.println("Ogiltig kategori");
+                return;
         }
     }
 
@@ -191,45 +216,12 @@ public class GameGUI {
         answerButton4 = new JButton();
 
         ActionListener answerButtonListener = e -> {
-            JButton clickedButton = (JButton) e.getSource();
-            String selectedAnswer = clickedButton.getText();
-            QuestionsAndAnswers currentQuestion = database.getCurrentQuestion();
-
-            // Kontrollerar om svaret är rätt eller fel
-            boolean isCorrect = selectedAnswer.equals(currentQuestion.getCorrectAnswer());
-
-
-            if (isCorrect) {
-                clickedButton.setBackground(Color.GREEN);
+            currentQuestionIndex++;
+            if (currentQuestionIndex < totalQuestions) {
+                loadQuestion();
             } else {
-                clickedButton.setBackground(Color.RED);
+                handleEndOfRound();
             }
-
-
-            if (!selectedAnswer.equals(answerButton1.getText()) && !answerButton1.getText().equals(currentQuestion.getCorrectAnswer())) {
-                answerButton1.setBackground(Color.RED);
-            }
-            if (!selectedAnswer.equals(answerButton2.getText()) && !answerButton2.getText().equals(currentQuestion.getCorrectAnswer())) {
-                answerButton2.setBackground(Color.RED);
-            }
-            if (!selectedAnswer.equals(answerButton3.getText()) && !answerButton3.getText().equals(currentQuestion.getCorrectAnswer())) {
-                answerButton3.setBackground(Color.RED);
-            }
-            if (!selectedAnswer.equals(answerButton4.getText()) && !answerButton4.getText().equals(currentQuestion.getCorrectAnswer())) {
-                answerButton4.setBackground(Color.RED);
-            }
-
-
-            Timer timer = new Timer(1000, evt -> {
-                currentQuestionIndex++;
-                if (currentQuestionIndex < totalQuestions) {
-                    loadQuestion();
-                } else {
-                    handleEndOfRound();
-                }
-            });
-            timer.setRepeats(false);
-            timer.start();
         };
 
         answerButton1.addActionListener(answerButtonListener);
@@ -246,6 +238,7 @@ public class GameGUI {
         return panel;
     }
 
+    // Ladda aktuell fråga
     private static void loadQuestion() {
         QuestionsAndAnswers question = database.getCurrentQuestion();
         questionLabel.setText(question.getQuestion());
@@ -267,6 +260,9 @@ public class GameGUI {
         answerButton4.setBackground(new Color(0, 181, 181));
     }
 
+
+
+    // Hantera slutet av en runda
     private static void handleEndOfRound() {
         JOptionPane.showMessageDialog(frame, "Runda " + currentRound + " är över!");
         currentQuestionIndex = 0;
@@ -274,7 +270,7 @@ public class GameGUI {
         if (currentRound <= totalRounds) {
             frame.remove(questionPanel);
             frame.add(categoryPanel, BorderLayout.CENTER);
-        } else {
+        } else{
             JOptionPane.showMessageDialog(frame, "Spelet är över! Tack för att du spelade!");
             frame.remove(questionPanel);
             frame.add(mainPanel, BorderLayout.CENTER);

@@ -1,6 +1,8 @@
 package Questions;
 
-public class QuestionsAndAnswers {
+import java.io.Serializable;
+
+public class QuestionsAndAnswers implements Serializable {
     private String Question;
     private String CorrectAnswer;
     private String answer2;
