@@ -1,4 +1,4 @@
-package Questions;
+package Properties;
 
 import java.io.*;
 import java.util.Properties;
@@ -9,7 +9,7 @@ public class RoundSettings {
 
     public RoundSettings(){
         Properties prop=new Properties();
-        try(FileInputStream file=new FileInputStream("src/Questions/Properties")) {
+        try(FileInputStream file=new FileInputStream("src/Properties/Properties_prop")) {
             prop.load(file);
             rounds= Integer.parseInt(prop.getProperty("Rounds", "2"));
             questions=Integer.parseInt(prop.getProperty("Questions", "2"));

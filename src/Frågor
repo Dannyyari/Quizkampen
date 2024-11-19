@@ -1,0 +1,16 @@
+Frågor till sigrun
+
+Hur ska man tänka med att skicka och hämta till server?
+
+Varför kan vi inte skapa instans av "objectoutputstream outtoserver" Titta på Client
+
+
+Ska alla frågor och svar till GUI komma från servern? ingen instans av DAO i GUI?
+
+Protokoll för att veta vart i spelet vi är. (kanske ksicka från klient ROUND1P1_OVER) och i serversida (IF ROUND1P1_OVER)
+
+Dela upp GUI till metoder? till exempel: getStartMenu, getCategoryMenu, getQuestionMenu, getScoreboardMenu
+
+
+Ska kontroll av korrekt svar göras i Serversida eller Klientsida?
+OK att göra på klient

@@ -4,17 +4,18 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class DAO implements Serializable {
-    List<QuestionsAndAnswers> QnA=new ArrayList<>();
-    private int currentIndex=0;
+    List<QuestionsAndAnswers> QuestionsAndAnswers =new ArrayList<>();
     private String path;
+    private String category;
 
-    public DAO(String path){
+
+    public DAO(String category, String path){
+        this.category=category;
         this.path=path;
         loader();
     }
@@ -24,38 +25,20 @@ public class DAO implements Serializable {
             String temp;
             while ((temp=reader.readLine())!=null){
                 String[] strArray=temp.split(", ");
-                QnA.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4] ));
+                QuestionsAndAnswers.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4] ));
             }
+
         }catch (IOException e){
             e.printStackTrace();
         }
     }
 
-    public List<String> getListOfAnswers(QuestionsAndAnswers question){
-        List<String> listOfAnswers= new ArrayList<>();
-        listOfAnswers.add(question.getCorrectAnswer());
-        listOfAnswers.add(question.getAnswer2());
-        listOfAnswers.add(question.getAnswer3());
-        listOfAnswers.add(question.getAnswer4());
-        return listOfAnswers;
-    }
-    public List<QuestionsAndAnswers> getListOfRandomizedSportsQuestion(){
-        List<QuestionsAndAnswers> shuffledQuestions = new ArrayList<>(QnA);
-        Collections.shuffle(shuffledQuestions);
-        return shuffledQuestions;
+    //Så vi kan skicka kategori namn till klient
+    public String getCategory() {
+        return category;
     }
 
-    public String getQuestion(String question){
-       QuestionsAndAnswers qna=null;
-        String que=qna.getQuestion();
-       return que;
-    }
-    public QuestionsAndAnswers getNextQuestion() {
-        if (currentIndex < QnA.size()) {
-            QuestionsAndAnswers question= QnA.get(currentIndex);
-            currentIndex++;
-            return question;
-        }
-        return null;  // Om vi har hämtat alla frågor
+    public List<QuestionsAndAnswers> getQuestionsAndAnswers() {
+        return QuestionsAndAnswers;
     }
 }

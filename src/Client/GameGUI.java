@@ -2,26 +2,45 @@ package Client;
 
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
-import Questions.RoundSettings;
-import Questions.Sub.DAO.DAO_Anatomy;
-import Questions.Sub.DAO.DAO_Geografi;
-import Questions.Sub.DAO.DAO_Sport;
+import Properties.RoundSettings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.List;
 
-public class GameGUI {
+public class GameGUI extends Thread implements Serializable {
+
+    //ServerKlientArk
+    private ObjectOutputStream outToServer;
+    private ObjectInputStream inFromServer;
+    private InetAddress iadr = InetAddress.getLoopbackAddress();
+    int port = 55555;
+
+
+    //frågor och svar
+    private List<QuestionsAndAnswers> anatomyQnA;
+    private List<QuestionsAndAnswers> geoQnA;
+    private List<QuestionsAndAnswers> sportQnA;
+    private List<QuestionsAndAnswers> hisotryQnA;
+
 
     // Huvudkomponenter
     private static JFrame frame;
     private static JPanel mainPanel, categoryPanel, questionPanel;
     private static JLabel questionLabel;
+    private List<JButton> answerbuttons;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
-    private static DAO database;
 
-    static RoundSettings settings= settings = new RoundSettings();
+
+    static RoundSettings settings;
     private static int totalQuestions= settings.getQuestions();
     private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
@@ -29,12 +48,47 @@ public class GameGUI {
     //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
+    public GameGUI() {
+        try (Socket clientSocket = new Socket(iadr, port);){
+            outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
+            inFromServer = new ObjectInputStream(clientSocket.getInputStream());
+
+            Object fromServer;
+            String stringFormServer;
+
+            while ((fromServer =  inFromServer.readObject())!=null){
+                Object o = ((List) fromServer).get(0);
+                if (o instanceof QuestionsAndAnswers listan){
+                    //gör en cast på hela listan, safe för du vet typen
+                    anatomyQnA.add(listan);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void run(){
+        new GameGUI();
+    }
+
     public static void main(String[] args) {
-        // Skapa huvudfönstret
-        frame = new JFrame("Game Interface");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 400);
-        frame.setLayout(new BorderLayout());
+        new GameGUI().start();
+    }
+
+
+/*
+  public static void main(String[] args) {
+        GameGUI c=new GameGUI();
+
+      // Skapa huvudfönstret
+      frame = new JFrame("Game Interface");
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.setSize(300, 400);
+      frame.setLayout(new BorderLayout());
+
+
 
         // Huvudpanelen
         mainPanel = createMainPanel();
@@ -50,6 +104,16 @@ public class GameGUI {
 
         // Visa huvudfönstret
         frame.setVisible(true);
+    }
+*/
+
+    public void sendCategorySelection(ObjectOutputStream outputStream, String selectedCategory) throws IOException {
+        outputStream.writeObject(selectedCategory); // Skicka kategori som sträng
+        outputStream.flush();
+    }
+
+    public List<QuestionsAndAnswers> receiveQuestionsFromServer(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+        return (List<QuestionsAndAnswers>) inputStream.readObject(); // Avserialiserar frågelistan
     }
 
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
@@ -165,11 +229,11 @@ public class GameGUI {
             } else if (e.getSource()==anatomyButton) {
                 chosenCategory="Anatomy";
             }
-            setDatabase(chosenCategory);
+
 
             frame.remove(categoryPanel);
             frame.add(questionPanel, BorderLayout.CENTER);
-            loadQuestion();
+            //loadQuestion();
             frame.revalidate();
             frame.repaint();
         };
@@ -185,26 +249,7 @@ public class GameGUI {
         panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
     }
-    //skapande av kategorival
-    public static void setDatabase(String category) {
-        String pathToSport = "src/Questions/textfiles/SportQuestions";
-        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-        switch (category) {
-            case "Sport":
-                database = new DAO_Sport(pathToSport);
-                break;
-            case "Geografi":
-                database = new DAO_Geografi(pathToGeo);
-                break;
-            case "Anatomy":
-                database = new DAO_Anatomy(pathToAnatomy);
-                break;
-            default:
-                System.out.println("Ogiltig kategori");
-                return;
-        }
-    }
+
 
     // Skapa frågepanelen
     private static JPanel createQuestionPanel() {
@@ -221,7 +266,7 @@ public class GameGUI {
         ActionListener answerButtonListener = e -> {
             currentQuestionIndex++;
             if (currentQuestionIndex < totalQuestions) {
-                loadQuestion();
+               // loadQuestion();
             } else {
                 handleEndOfRound();
             }
@@ -242,8 +287,11 @@ public class GameGUI {
     }
 
     // Ladda aktuell fråga
+    //kommer det gå att ha denna metod för att ladda in frågorna?
+    //De kommer sparas i varsin List <QuestionsAndAnswers>
+   /*
     private static void loadQuestion() {
-        QuestionsAndAnswers currentQuestion = database.getNextQuestion();
+        QuestionsAndAnswers currentQuestion =
 
         questionLabel.setText(currentQuestion.getQuestion());
         answerButton1.setText(currentQuestion.getCorrectAnswer());
@@ -251,6 +299,8 @@ public class GameGUI {
         answerButton3.setText(currentQuestion.getAnswer3());
         answerButton4.setText(currentQuestion.getAnswer4());
     }
+*/
+
 
     // Hantera slutet av en runda
     private static void handleEndOfRound() {
