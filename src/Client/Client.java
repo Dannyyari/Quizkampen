@@ -12,7 +12,8 @@ public class Client extends Thread implements Serializable {
     //  private Socket clientSocket;
     // ObjectOutputStream outToServer;
     // ObjectInputStream inFromServer;
-     GameGUI game;
+
+    GameGUI game;
 
     private int pointCounter;
 

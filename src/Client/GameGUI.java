@@ -14,6 +14,8 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
+import static GameGUI.questionLabel;
+
 public class GameGUI {
     private Client client;
 
