@@ -1,9 +1,9 @@
 package ServerSide;
 
-import Client.GameGUI;
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 import Questions.RoundSettings;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -12,8 +12,8 @@ import java.net.Socket;
 import java.util.List;
 
 public class Server extends Thread {
-    Socket playerOneSocket;
-    Socket playerTwoSocket;
+    ServerSidePlayer playerOneSocket;
+    ServerSidePlayer playerTwoSocket;
 
     private List<QuestionsAndAnswers> questions;
     private int currentQuestionIndex; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
@@ -24,6 +24,8 @@ public class Server extends Thread {
     private ObjectInputStream fromPlayerTwo;
 
     private static DAO database;
+
+
     static RoundSettings settings = settings = new RoundSettings();
 
     //variabler för resten av logiken
@@ -40,15 +42,15 @@ public class Server extends Thread {
 
 
     //kopplar två spelare
-    public Server(Socket socketPlayerOne, Socket socketPlayerTwo) throws IOException {
-        this.playerOneSocket = socketPlayerOne;
-        this.playerTwoSocket = socketPlayerTwo;
+    public Server(ServerSidePlayer PlayerOne, ServerSidePlayer PlayerTwo) throws IOException {
+        this.playerOneSocket = PlayerOne;
+        this.playerTwoSocket = PlayerTwo;
 
             try {
-                toPlayerOne = new ObjectOutputStream(playerOneSocket.getOutputStream());
-                toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getOutputStream());
-                fromPlayerOne = new ObjectInputStream(playerOneSocket.getInputStream());
-                fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getInputStream());
+                toPlayerOne = new ObjectOutputStream(playerOneSocket.getSock().getOutputStream());
+                toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getSock().getOutputStream());
+                fromPlayerOne = new ObjectInputStream(playerOneSocket.getSock().getInputStream());
+                fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getSock().getInputStream());
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -118,7 +120,7 @@ public class Server extends Thread {
         String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
         switch (category) {
             case "Sport":
-                database = new DAO(pathToSport);
+                database.getInstaceOfQuestionsAndAnswersSPORT(database);
                 break;
             case "Geografi":
                 database = new DAO(pathToGeo);

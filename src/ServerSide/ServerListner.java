@@ -6,16 +6,24 @@ import java.net.Socket;
 public class ServerListner {
     private int port= 55555;
 
+    ServerSidePlayer player2;
+
+
+
     public ServerListner() {
         try (ServerSocket serverSocket = new ServerSocket(port);) {
             System.out.println("QUIZKAMPEN");
             System.out.println();
             while (!serverSocket.isClosed()){
+
+                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), "Emil");
                 Socket socketForPlayer1= serverSocket.accept();
                 System.out.println("en spelare ansluten");
-                Socket socketForPlayer2 = serverSocket.accept();
+
+                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), "Emil");
                 System.out.println("två spelare anslutna, nu kör vi!");
-                Server server= new Server(socketForPlayer1, socketForPlayer2);
+                Server server= new Server(player1,player2);
+
                 server.start();
             }
         } catch (Exception e) {

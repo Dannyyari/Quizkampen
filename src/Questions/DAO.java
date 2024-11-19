@@ -4,9 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class DAO implements Serializable {
@@ -31,25 +29,10 @@ public class DAO implements Serializable {
         }
     }
 
-    public List<String> getListOfAnswers(QuestionsAndAnswers question){
-        List<String> listOfAnswers= new ArrayList<>();
-        listOfAnswers.add(question.getCorrectAnswer());
-        listOfAnswers.add(question.getAnswer2());
-        listOfAnswers.add(question.getAnswer3());
-        listOfAnswers.add(question.getAnswer4());
-        return listOfAnswers;
-    }
 
-    public QuestionsAndAnswers getNextQuestion() {
-        if (currentIndex < QnA.size()) {
-            QuestionsAndAnswers question= QnA.get(currentIndex);
-            currentIndex++;
-            return question;
-        }
-        return null;  // Om vi har hämtat alla frågor
-    }
-
-    public List<QuestionsAndAnswers> getQnA(DAO dao){
+    //Enbart denna fil då vi vill att Server skickar List of Question and Answer
+    public List<QuestionsAndAnswers> getInstaceOfQuestionsAndAnswersSPORT(DAO dao){
+        dao= new DAO("src/Questions/textfiles/SportQuestions");
         return QnA;
     }
 }

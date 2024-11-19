@@ -13,17 +13,16 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
 public class GameGUI extends Thread implements Serializable {
 
     //ServerKlientArk
-    private Socket clientSocket;
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
     private InetAddress iadr = InetAddress.getLoopbackAddress();
     int port = 55555;
+
 
     //frågor och svar
     private List<QuestionsAndAnswers> anatomyQnA;
@@ -46,25 +45,36 @@ public class GameGUI extends Thread implements Serializable {
     //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
-    public void getStart() {
-        try {
-            clientSocket = new Socket(iadr, port);
+    public GameGUI() {
+        try (Socket clientSocket = new Socket(iadr, port);){
             outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
             inFromServer = new ObjectInputStream(clientSocket.getInputStream());
 
+            Object fromServer;
+            String stringFormServer;
+
+            while ((fromServer =  inFromServer.readObject())!=null){
+                if (inFromServer instanceof <QuestionsAndAnswers> listan){
+                    anatomyQnA.add(listan);
+                }
+            }
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
 
   public static void main(String[] args) {
+        GameGUI c=new GameGUI();
 
       // Skapa huvudfönstret
       frame = new JFrame("Game Interface");
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       frame.setSize(300, 400);
       frame.setLayout(new BorderLayout());
+
 
 
         // Huvudpanelen
