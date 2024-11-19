@@ -7,14 +7,28 @@ import Questions.RoundSettings;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
-public class GameGUI {
-    private Client client;
+public class GameGUI extends Thread implements Serializable {
 
-    public GameGUI(Client client) {
-        this.client = client;
-    }
-    public GameGUI(){}
+    //ServerKlientArk
+    private Socket clientSocket;
+    private ObjectOutputStream outToServer;
+    private ObjectInputStream inFromServer;
+    private InetAddress iadr = InetAddress.getLoopbackAddress();
+    int port = 55555;
+
+    //frågor och svar
+    private List<QuestionsAndAnswers> anatomyQnA;
+    private List<QuestionsAndAnswers> geoQnA;
+    private List<QuestionsAndAnswers> sportQnA;
 
     // Huvudkomponenter
     private static JFrame frame;
@@ -22,7 +36,7 @@ public class GameGUI {
     private static JLabel questionLabel;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
-    private static DAO database;
+
 
     static RoundSettings settings;
     private static int totalQuestions= settings.getQuestions();
@@ -32,12 +46,26 @@ public class GameGUI {
     //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
-  /*  public static void main(String[] args) {
-        // Skapa huvudfönstret
-        frame = new JFrame("Game Interface");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 400);
-        frame.setLayout(new BorderLayout());
+    public void getStart() {
+        try {
+            clientSocket = new Socket(iadr, port);
+            outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
+            inFromServer = new ObjectInputStream(clientSocket.getInputStream());
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+  public static void main(String[] args) {
+
+      // Skapa huvudfönstret
+      frame = new JFrame("Game Interface");
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.setSize(300, 400);
+      frame.setLayout(new BorderLayout());
+
 
         // Huvudpanelen
         mainPanel = createMainPanel();
@@ -53,7 +81,7 @@ public class GameGUI {
 
         // Visa huvudfönstret
         frame.setVisible(true);
-    }*/
+    }
 
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
@@ -195,13 +223,13 @@ public class GameGUI {
         String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
         switch (category) {
             case "Sport":
-                database = new DAO("src/Questions/textfiles/SportQuestions");
+                new DAO("src/Questions/textfiles/SportQuestions");
                 break;
             case "Geografi":
-                database = new DAO("src/Questions/textfiles/GeoQuestions");
+                 new DAO("src/Questions/textfiles/GeoQuestions");
                 break;
             case "Anatomy":
-                database = new DAO("src/Questions/textfiles/AnatomyQuestions");
+                 new DAO("src/Questions/textfiles/AnatomyQuestions");
                 break;
             default:
                 System.out.println("Ogiltig kategori");

@@ -59,7 +59,8 @@ public class Server extends Thread {
     public void run(){
         //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
         try {
-            sendQuestionToPlayers();
+            toPlayerOne.writeObject("Hej spelare 1");
+            toPlayerTwo.writeObject("Hej spelare 2");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -158,7 +159,7 @@ public class Server extends Thread {
         }
 
         // Vet ej varför dom blir röda, men kanske inte ens behövs?
-        if (playerTwoAnswer == question.getCorrectAnswer()) {
+        if (playerTwoAnswer.equalsIgnoreCase( question.getCorrectAnswer())) {
             toPlayerTwo.writeObject("Rätt Svar!");
         } else {
             toPlayerTwo.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
