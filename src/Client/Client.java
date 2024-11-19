@@ -33,7 +33,7 @@ public class Client extends Thread implements Serializable {
     }
 
     public static void main(String[] args) throws IOException {
-        Client c=new Client();
+        Client client=new Client();
 
     }
 

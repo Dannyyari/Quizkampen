@@ -3,47 +3,69 @@ package Client;
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 import Questions.RoundSettings;
-import Questions.Sub.DAO.DAO_Anatomy;
-import Questions.Sub.DAO.DAO_Geografi;
-import Questions.Sub.DAO.DAO_Sport;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
-import static GameGUI.questionLabel;
+public class GameGUI extends Thread implements Serializable {
 
-public class GameGUI {
-    private Client client;
+    //ServerKlientArk
+    private Socket clientSocket;
+    private ObjectOutputStream outToServer;
+    private ObjectInputStream inFromServer;
+    private InetAddress iadr = InetAddress.getLoopbackAddress();
+    int port = 55555;
 
-    public GameGUI(Client client) {
-        this.client = client;
-    }
-    public GameGUI(){}
+    //frågor och svar
+    private List<QuestionsAndAnswers> anatomyQnA;
+    private List<QuestionsAndAnswers> geoQnA;
+    private List<QuestionsAndAnswers> sportQnA;
 
     // Huvudkomponenter
     private static JFrame frame;
     private static JPanel mainPanel, categoryPanel, questionPanel;
-    private static JLabel questionLabel, scoreLabel;
+    private static JLabel questionLabel;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
-    private static DAO database;
+
 
     static RoundSettings settings;
     private static int totalQuestions= settings.getQuestions();
     private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
     private static int currentRound = 1; // Spårar nuvarande runda
+    //ska detta vara 0?
+    // Totalt antal rundor (baserat på vad som står i properties)
 
-  /*  public static void main(String[] args) {
-        // Skapa huvudfönstret
-        frame = new JFrame("Game Interface");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 400);
-        frame.setLayout(new BorderLayout());
+    public void getStart() {
+        try {
+            clientSocket = new Socket(iadr, port);
+            outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
+            inFromServer = new ObjectInputStream(clientSocket.getInputStream());
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+  public static void main(String[] args) {
+
+      // Skapa huvudfönstret
+      frame = new JFrame("Game Interface");
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.setSize(300, 400);
+      frame.setLayout(new BorderLayout());
+
 
         // Huvudpanelen
         mainPanel = createMainPanel();
@@ -59,73 +81,83 @@ public class GameGUI {
 
         // Visa huvudfönstret
         frame.setVisible(true);
-    }*/
+    }
 
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(0, 181, 181));
 
-        // Toppanel med spelartur och poäng
-        JPanel topPanel = new JPanel(new GridLayout(2, 1));
-        topPanel.setBackground(new Color(0, 181, 181));
-        topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        // Toppanel
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new GridLayout(3, 1));
 
-        JLabel turnLabel = new JLabel("Din Tur", SwingConstants.CENTER);
-        turnLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
-        turnLabel.setForeground(new Color(16, 13, 13));
+        // Spelartur Label
+        JLabel turnLabel = new JLabel("Din tur", SwingConstants.CENTER);
 
-        scoreLabel = new JLabel("Spelare: 0 - Motståndare: 0", SwingConstants.CENTER);
-        scoreLabel.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        scoreLabel.setForeground(Color.LIGHT_GRAY);
+        // Poäng Label
+        JLabel scoreLabel = new JLabel("0 - 0", SwingConstants.CENTER);
 
+        // Spelarnamn Panel
+        JPanel playerPanel = new JPanel(new GridLayout(1, 2));
+        JLabel player1Label = new JLabel("Spelare 1", SwingConstants.CENTER);
+        JLabel player2Label = new JLabel("Motståndare", SwingConstants.CENTER);
+        playerPanel.add(player1Label);
+        playerPanel.add(player2Label);
+
+        // Panel för cirklar under Spelare 1 och Motståndare
+        JPanel circlesPanel = getCirclesPanel();
+
+        // Lägg till komponenter till toppanelen
         topPanel.add(turnLabel);
         topPanel.add(scoreLabel);
+        topPanel.add(playerPanel);
 
-        // Bottenpanel med Spela knappen
+        // Mittenpanel med cirklar
+        JPanel middlePanel = new JPanel(new BorderLayout());
+        middlePanel.add(circlesPanel, BorderLayout.CENTER);
+
+        // Bottenpanel med "Spela"-knappen
         JPanel bottomPanel = new JPanel();
-        bottomPanel.setBackground(new Color(51, 58, 56));
         JButton playButton = new JButton("Spela");
-        styleButton(playButton);
+        playButton.addActionListener(e -> {
+            frame.remove(panel);
+            frame.add(categoryPanel, BorderLayout.CENTER);
+            frame.revalidate();
+            frame.repaint();
+        });
         bottomPanel.add(playButton);
 
-
-        playButton.addActionListener(e -> switchToPanel(categoryPanel));
-
         panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(middlePanel, BorderLayout.CENTER);
         panel.add(bottomPanel, BorderLayout.SOUTH);
 
         return panel;
     }
 
-    private static void styleButton(JButton button) {
-        button.setFocusPainted(false);
-        button.setFont(new Font("SansSerif", Font.BOLD, 18));
-        button.setBackground(new Color(0, 181, 181));
-        button.setForeground(Color.WHITE);
-        button.setBorder(new CompoundBorder(
-                new LineBorder(Color.BLACK, 2, true),
-                new EmptyBorder(10, 20, 10, 20)
-        ));
+    // Skapa cirkelpanelen för poängvisning
+    private static JPanel getCirclesPanel() {
+        JPanel circlesPanel = new JPanel(new GridLayout(2, 2));
 
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(7, 241, 46));
-            }
+        // Cirklar för Spelare 1, rad 1
+        JPanel player1CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player1Circle1 = new JLabel("O");
+        JLabel player1Circle2 = new JLabel("O");
+        player1CirclesPanel1.add(player1Circle1);
+        player1CirclesPanel1.add(player1Circle2);
 
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(0, 181, 181));
-            }
-        });
-    }
+        // Cirklar för Motståndare, rad 1
+        JPanel player2CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player2Circle1 = new JLabel("O");
+        JLabel player2Circle2 = new JLabel("O");
+        player2CirclesPanel1.add(player2Circle1);
+        player2CirclesPanel1.add(player2Circle2);
 
-    private static void switchToPanel(JPanel panel) {
-        frame.getContentPane().removeAll();
-        frame.add(panel);
-        frame.revalidate();
-        frame.repaint();
-    }
+        // Cirklar för Spelare 1, rad 2
+        JPanel player1CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player1Circle3 = new JLabel("O");
+        JLabel player1Circle4 = new JLabel("O");
+        player1CirclesPanel2.add(player1Circle3);
+        player1CirclesPanel2.add(player1Circle4);
 
         // Cirklar för Motståndare, rad 2
         JPanel player2CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
@@ -146,8 +178,6 @@ public class GameGUI {
     // Skapa kategoripanelen
     private static JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(183, 239, 41));
-
         JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
         panel.add(categoryLabel, BorderLayout.NORTH);
 
@@ -156,14 +186,15 @@ public class GameGUI {
         JButton geoButton = new JButton("Geografi");
         JButton anatomyButton = new JButton("Anatomy");
 
+
         ActionListener categoryButtonListener = e -> {
-            String chosenCategory = "";
-            if (e.getSource() == sportButton) {
-                chosenCategory = "Sport";
-            } else if (e.getSource() == geoButton) {
-                chosenCategory = "Geografi";
-            } else if (e.getSource() == anatomyButton) {
-                chosenCategory = "Anatomy";
+            String chosenCategory="";
+            if (e.getSource()==sportButton){
+                chosenCategory="Sport";
+            } else if (e.getSource()==geoButton) {
+                chosenCategory="Geografi";
+            } else if (e.getSource()==anatomyButton) {
+                chosenCategory="Anatomy";
             }
             setDatabase(chosenCategory);
 
@@ -192,13 +223,13 @@ public class GameGUI {
         String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
         switch (category) {
             case "Sport":
-                database = new DAO("src/Questions/textfiles/SportQuestions");
+                new DAO("src/Questions/textfiles/SportQuestions");
                 break;
             case "Geografi":
-                database = new DAO("src/Questions/textfiles/GeoQuestions");
+                 new DAO("src/Questions/textfiles/GeoQuestions");
                 break;
             case "Anatomy":
-                database = new DAO("src/Questions/textfiles/AnatomyQuestions");
+                 new DAO("src/Questions/textfiles/AnatomyQuestions");
                 break;
             default:
                 System.out.println("Ogiltig kategori");
@@ -206,6 +237,7 @@ public class GameGUI {
         }
     }
 
+    // Skapa frågepanelen
     private static JPanel createQuestionPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         questionLabel = new JLabel("", SwingConstants.CENTER);
@@ -226,15 +258,15 @@ public class GameGUI {
             }
         };
 
-        answerButton1.addActionListener(answerButtonListener);
-        answerButton2.addActionListener(answerButtonListener);
-        answerButton3.addActionListener(answerButtonListener);
-        answerButton4.addActionListener(answerButtonListener);
-
         buttonPanel.add(answerButton1);
         buttonPanel.add(answerButton2);
         buttonPanel.add(answerButton3);
         buttonPanel.add(answerButton4);
+
+        answerButton1.addActionListener(answerButtonListener);
+        answerButton2.addActionListener(answerButtonListener);
+        answerButton3.addActionListener(answerButtonListener);
+        answerButton4.addActionListener(answerButtonListener);
 
         panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
@@ -242,24 +274,13 @@ public class GameGUI {
 
     // Ladda aktuell fråga
     private static void loadQuestion() {
-        QuestionsAndAnswers question = database.getCurrentQuestion();
-        questionLabel.setText(question.getQuestion());
+        QuestionsAndAnswers currentQuestion = database.getNextQuestion();
 
-
-        answerButton1.setText(question.getCorrectAnswer());
-        answerButton2.setText(question.getAnswer2());
-        answerButton3.setText(question.getAnswer3());
-        answerButton4.setText(question.getAnswer4());
-
-
-        resetButtonColors();
-    }
-
-    private static void resetButtonColors() {
-        answerButton1.setBackground(new Color(0, 181, 181));
-        answerButton2.setBackground(new Color(0, 181, 181));
-        answerButton3.setBackground(new Color(0, 181, 181));
-        answerButton4.setBackground(new Color(0, 181, 181));
+        questionLabel.setText(currentQuestion.getQuestion());
+        answerButton1.setText(currentQuestion.getCorrectAnswer());
+        answerButton2.setText(currentQuestion.getAnswer2());
+        answerButton3.setText(currentQuestion.getAnswer3());
+        answerButton4.setText(currentQuestion.getAnswer4());
     }
 
 
