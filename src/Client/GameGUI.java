@@ -101,6 +101,16 @@ public class GameGUI extends Thread implements Serializable {
         frame.setVisible(true);
     }
 */
+
+    public void sendCategorySelection(ObjectOutputStream outputStream, String selectedCategory) throws IOException {
+        outputStream.writeObject(selectedCategory); // Skicka kategori som sträng
+        outputStream.flush();
+    }
+
+    public List<QuestionsAndAnswers> receiveQuestionsFromServer(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+        return (List<QuestionsAndAnswers>) inputStream.readObject(); // Avserialiserar frågelistan
+    }
+
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());

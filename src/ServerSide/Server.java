@@ -4,34 +4,36 @@ import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 import Properties.RoundSettings;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Server extends Thread {
+public class Server extends Thread implements Serializable{
     ServerSidePlayer playerOneSocket;
     ServerSidePlayer playerTwoSocket;
-
-
-    private List<QuestionsAndAnswers> questions;
-    private int currentQuestionIndex; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
-    private String pathToSport = "src/Questions/textfiles/SportQuestions";
-    private String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-    private String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-
-    private DAO sportQuestions= new DAO("Sport", pathToSport);
-    private DAO anatomyQuestions= new DAO("Anatomy", pathToAnatomy);
-    private DAO geoQuestions=new DAO("Geography", pathToGeo);
-
 
     private ObjectOutputStream toPlayerOne;
     private ObjectOutputStream toPlayerTwo;
     private ObjectInputStream fromPlayerOne;
     private ObjectInputStream fromPlayerTwo;
 
+    //kanske ta bort
     private static DAO database;
+
+    private List<QuestionsAndAnswers> questions;
+    private int currentQuestionIndex; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
+    private String pathToSport = "src/Questions/textfiles/SportQuestions";
+    private String pathToGeo = "src/Questions/textfiles/GeoQuestions";
+    private String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
+    private String pathToHistory= "src/Questions/textfiles/HistoryQuestions";
+
+    private DAO sportQuestions= new DAO("Sport", pathToSport);
+    private DAO anatomyQuestions= new DAO("Anatomy", pathToAnatomy);
+    private DAO geoQuestions=new DAO("Geography", pathToGeo);
+    private DAO historyQuestions= new DAO("History", pathToHistory);
+
+
+
 
 
     static RoundSettings settings = settings = new RoundSettings();
@@ -76,43 +78,36 @@ public class Server extends Thread {
         }
     }
 
-
-    private static JPanel createCategoryPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
-        panel.add(categoryLabel, BorderLayout.NORTH);
-
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
-        JButton sportButton = new JButton("Sport");
-        JButton geoButton = new JButton("Geografi");
-        JButton anatomyButton = new JButton("Anatomy");
-
-
-        ActionListener categoryButtonListener = e -> {
-            String chosenCategory = "";
-            if (e.getSource() == sportButton) {
-                chosenCategory = "Sport";
-            } else if (e.getSource() == geoButton) {
-                chosenCategory = "Geografi";
-            } else if (e.getSource() == anatomyButton) {
-                chosenCategory = "Anatomy";
-            }
-
-
-        };
-
-        //oklart hur allt detta ska bort
-        sportButton.addActionListener(categoryButtonListener);
-        geoButton.addActionListener(categoryButtonListener);
-        anatomyButton.addActionListener(categoryButtonListener);
-
-        buttonPanel.add(sportButton);
-        buttonPanel.add(geoButton);
-        buttonPanel.add(anatomyButton);
-
-        panel.add(buttonPanel, BorderLayout.CENTER);
-        return panel;
+    public List<DAO> getListOfDAOS(){
+        List<DAO> listOfDAO=new ArrayList<>();
+        listOfDAO.add(sportQuestions);
+        listOfDAO.add(anatomyQuestions);
+        listOfDAO.add(geoQuestions);
+        listOfDAO.add(historyQuestions);
+        return listOfDAO;
     }
+
+    public void sendCategoriesToClient(ObjectOutputStream oos, List<DAO> DAOS) throws IOException {
+
+        List<String>categories= new ArrayList<>();
+        for (DAO dao : DAOS) {
+            categories.add(dao.getCategory());
+        }
+        oos.writeObject(categories);;
+        oos.flush();
+    }
+    public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
+        for (DAO dao : DAOS) {
+            if (dao.getCategory().equals(categoryNameinputFromUser)) {
+                oos.writeObject(dao.getQuestionsAndAnswers()); // Serialiserar och skickar frågorna
+                oos.flush();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Kategori ej hittad: " + categoryNameinputFromUser);
+
+    }
+
 
 
     //BORT men kanske behålla switch case?

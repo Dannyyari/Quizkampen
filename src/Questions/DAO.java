@@ -38,7 +38,7 @@ public class DAO implements Serializable {
         return category;
     }
 
-    public List<Questions.QuestionsAndAnswers> getQuestionsAndAnswers() {
+    public List<QuestionsAndAnswers> getQuestionsAndAnswers() {
         return QuestionsAndAnswers;
     }
 }
