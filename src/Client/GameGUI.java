@@ -1,16 +1,12 @@
 package Client;
 
-import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 import Properties.RoundSettings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.List;
@@ -20,22 +16,21 @@ public class GameGUI extends Thread implements Serializable {
     //ServerKlientArk
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
+    private BufferedReader readerBuff;
     private InetAddress iadr = InetAddress.getLoopbackAddress();
     int port = 55555;
 
 
     //frågor och svar
-    private List<QuestionsAndAnswers> anatomyQnA;
-    private List<QuestionsAndAnswers> geoQnA;
-    private List<QuestionsAndAnswers> sportQnA;
-    private List<QuestionsAndAnswers> hisotryQnA;
+    private List<String> categoryList;
+    private List<QuestionsAndAnswers> questionsList;
 
 
     // Huvudkomponenter
     private static JFrame frame;
     private static JPanel mainPanel, categoryPanel, questionPanel;
     private static JLabel questionLabel;
-    private List<JButton> answerbuttons;
+    private static JButton categoryButton1, categoryButton2, categoryButton3, categoryButton4;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
 
@@ -48,21 +43,33 @@ public class GameGUI extends Thread implements Serializable {
     //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
-    public GameGUI() {
+    public GameGUI() throws IOException, ClassNotFoundException {
+        Object fromServer=inFromServer.readObject();
         try (Socket clientSocket = new Socket(iadr, port);){
             outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
             inFromServer = new ObjectInputStream(clientSocket.getInputStream());
+            readerBuff =new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            Object fromServer;
-            String stringFormServer;
 
             while ((fromServer =  inFromServer.readObject())!=null){
-                Object o = ((List) fromServer).get(0);
-                if (o instanceof QuestionsAndAnswers listan){
-                    //gör en cast på hela listan, safe för du vet typen
-                    anatomyQnA.add(listan);
+                if (fromServer instanceof String string){
+                    if (string.equals("CATEGORY")){
+                    categoryList.add(readerBuff.readLine());
+                    createCategoryPanel(categoryList);
+                    } else if (string.equals("QUESTIONS")) {
+
+                    }
+                } else if ( fromServer instanceof QuestionsAndAnswers questions) {
+
                 }
+
             }
+//                Object o = ((List) fromServer).get(0);
+//                if (o instanceof QuestionsAndAnswers listan){
+//                    //gör en cast på hela listan, safe för du vet typen
+//                    anatomyQnA.add(listan);
+//                }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
@@ -70,42 +77,25 @@ public class GameGUI extends Thread implements Serializable {
         }
     }
     public void run(){
-        new GameGUI();
+        try {
+            new GameGUI();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         new GameGUI().start();
     }
 
 
-/*
-  public static void main(String[] args) {
-        GameGUI c=new GameGUI();
+    public void getCategory(String chosenCategory){
 
-      // Skapa huvudfönstret
-      frame = new JFrame("Game Interface");
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      frame.setSize(300, 400);
-      frame.setLayout(new BorderLayout());
-
-
-
-        // Huvudpanelen
-        mainPanel = createMainPanel();
-
-        // Kategoripanelen
-        categoryPanel = createCategoryPanel();
-
-        // Frågepanelen
-        questionPanel = createQuestionPanel();
-
-        // Lägg till huvudpanelen till fönstret
-        frame.add(mainPanel, BorderLayout.CENTER);
-
-        // Visa huvudfönstret
-        frame.setVisible(true);
     }
-*/
+
+
 
     public void sendCategorySelection(ObjectOutputStream outputStream, String selectedCategory) throws IOException {
         outputStream.writeObject(selectedCategory); // Skicka kategori som sträng
@@ -116,6 +106,30 @@ public class GameGUI extends Thread implements Serializable {
         return (List<QuestionsAndAnswers>) inputStream.readObject(); // Avserialiserar frågelistan
     }
 
+
+
+
+    // Skapa kategoripanelen
+    private static JPanel createCategoryPanel(List <String> categoryList) {
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
+        panel.add(categoryLabel, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        JButton sportButton = new JButton(categoryList.get(0));
+        JButton anatomyButton = new JButton(categoryList.get(1));
+        JButton geoButton = new JButton(categoryList.get(2));
+        JButton historyButton = new JButton(categoryList.get(3));
+
+
+        buttonPanel.add(sportButton);
+        buttonPanel.add(geoButton);
+        buttonPanel.add(anatomyButton);
+        buttonPanel.add(historyButton);
+
+        panel.add(buttonPanel, BorderLayout.CENTER);
+        return panel;
+    }
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -167,92 +181,8 @@ public class GameGUI extends Thread implements Serializable {
         return panel;
     }
 
-    // Skapa cirkelpanelen för poängvisning
-    private static JPanel getCirclesPanel() {
-        JPanel circlesPanel = new JPanel(new GridLayout(2, 2));
-
-        // Cirklar för Spelare 1, rad 1
-        JPanel player1CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        JLabel player1Circle1 = new JLabel("O");
-        JLabel player1Circle2 = new JLabel("O");
-        player1CirclesPanel1.add(player1Circle1);
-        player1CirclesPanel1.add(player1Circle2);
-
-        // Cirklar för Motståndare, rad 1
-        JPanel player2CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        JLabel player2Circle1 = new JLabel("O");
-        JLabel player2Circle2 = new JLabel("O");
-        player2CirclesPanel1.add(player2Circle1);
-        player2CirclesPanel1.add(player2Circle2);
-
-        // Cirklar för Spelare 1, rad 2
-        JPanel player1CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        JLabel player1Circle3 = new JLabel("O");
-        JLabel player1Circle4 = new JLabel("O");
-        player1CirclesPanel2.add(player1Circle3);
-        player1CirclesPanel2.add(player1Circle4);
-
-        // Cirklar för Motståndare, rad 2
-        JPanel player2CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        JLabel player2Circle3 = new JLabel("O");
-        JLabel player2Circle4 = new JLabel("O");
-        player2CirclesPanel2.add(player2Circle3);
-        player2CirclesPanel2.add(player2Circle4);
-
-        // Lägg till alla cirkelpaneler
-        circlesPanel.add(player1CirclesPanel1);
-        circlesPanel.add(player2CirclesPanel1);
-        circlesPanel.add(player1CirclesPanel2);
-        circlesPanel.add(player2CirclesPanel2);
-
-        return circlesPanel;
-    }
-
-    // Skapa kategoripanelen
-    private static JPanel createCategoryPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
-        panel.add(categoryLabel, BorderLayout.NORTH);
-
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
-        JButton sportButton = new JButton("Sport");
-        JButton geoButton = new JButton("Geografi");
-        JButton anatomyButton = new JButton("Anatomy");
-
-
-        ActionListener categoryButtonListener = e -> {
-            String chosenCategory="";
-            if (e.getSource()==sportButton){
-                chosenCategory="Sport";
-            } else if (e.getSource()==geoButton) {
-                chosenCategory="Geografi";
-            } else if (e.getSource()==anatomyButton) {
-                chosenCategory="Anatomy";
-            }
-
-
-            frame.remove(categoryPanel);
-            frame.add(questionPanel, BorderLayout.CENTER);
-            //loadQuestion();
-            frame.revalidate();
-            frame.repaint();
-        };
-
-        sportButton.addActionListener(categoryButtonListener);
-        geoButton.addActionListener(categoryButtonListener);
-        anatomyButton.addActionListener(categoryButtonListener);
-
-        buttonPanel.add(sportButton);
-        buttonPanel.add(geoButton);
-        buttonPanel.add(anatomyButton);
-
-        panel.add(buttonPanel, BorderLayout.CENTER);
-        return panel;
-    }
-
-
     // Skapa frågepanelen
-    private static JPanel createQuestionPanel() {
+    private static JPanel createQuestionPanel(List <QuestionsAndAnswers> questions) {
         JPanel panel = new JPanel(new BorderLayout());
         questionLabel = new JLabel("", SwingConstants.CENTER);
         panel.add(questionLabel, BorderLayout.NORTH);
@@ -317,5 +247,45 @@ public class GameGUI extends Thread implements Serializable {
         }
         frame.revalidate();
         frame.repaint();
+    }
+    // Skapa cirkelpanelen för poängvisning
+    private static JPanel getCirclesPanel() {
+        JPanel circlesPanel = new JPanel(new GridLayout(2, 2));
+
+        // Cirklar för Spelare 1, rad 1
+        JPanel player1CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player1Circle1 = new JLabel("O");
+        JLabel player1Circle2 = new JLabel("O");
+        player1CirclesPanel1.add(player1Circle1);
+        player1CirclesPanel1.add(player1Circle2);
+
+        // Cirklar för Motståndare, rad 1
+        JPanel player2CirclesPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player2Circle1 = new JLabel("O");
+        JLabel player2Circle2 = new JLabel("O");
+        player2CirclesPanel1.add(player2Circle1);
+        player2CirclesPanel1.add(player2Circle2);
+
+        // Cirklar för Spelare 1, rad 2
+        JPanel player1CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player1Circle3 = new JLabel("O");
+        JLabel player1Circle4 = new JLabel("O");
+        player1CirclesPanel2.add(player1Circle3);
+        player1CirclesPanel2.add(player1Circle4);
+
+        // Cirklar för Motståndare, rad 2
+        JPanel player2CirclesPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel player2Circle3 = new JLabel("O");
+        JLabel player2Circle4 = new JLabel("O");
+        player2CirclesPanel2.add(player2Circle3);
+        player2CirclesPanel2.add(player2Circle4);
+
+        // Lägg till alla cirkelpaneler
+        circlesPanel.add(player1CirclesPanel1);
+        circlesPanel.add(player2CirclesPanel1);
+        circlesPanel.add(player1CirclesPanel2);
+        circlesPanel.add(player2CirclesPanel2);
+
+        return circlesPanel;
     }
 }

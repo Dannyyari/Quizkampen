@@ -114,11 +114,12 @@ public class Server extends Thread implements Serializable{
     }
 
     public void sendCategoriesToClient(ObjectOutputStream oos, List<DAO> DAOS) throws IOException {
-        List<String>categories= new ArrayList<>();
+        String cat= "";
+        oos.writeObject("CATEGORY");
         for (DAO dao : DAOS) {
-            categories.add(dao.getCategory());
+            oos.writeObject( cat=dao.getCategory());
+
         }
-        oos.writeObject(categories);;
         oos.flush();
     }
 
@@ -126,73 +127,15 @@ public class Server extends Thread implements Serializable{
     public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
         for (DAO dao : DAOS) {
             if (dao.getCategory().equals(categoryNameinputFromUser)) {
+                oos.writeObject("QUESTIONS");
                 oos.writeObject(dao.getQuestionsAndAnswers()); // Serialiserar och skickar frågorna
                 oos.flush();
                 return;
             }
         }
         throw new IllegalArgumentException("Kategori ej hittad: " + categoryNameinputFromUser);
-
     }
 
-
-
-    //BORT men kanske behålla switch case?
-//    public static void setDatabase(String category) {
-//        String pathToSport = "src/Questions/textfiles/SportQuestions";
-//        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-//        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-//        switch (category) {
-//            case "Sport":
-//
-//                break;
-//            case "Geografi":
-//                database = new DAO(pathToGeo);
-//                break;
-//            case "Anatomy":
-//                database = new DAO(pathToAnatomy);
-//                break;
-//            default:
-//                System.out.println("Ogiltig kategori");
-//                return;
-//        }
-//    }
-
-
-    //insprererad av chaGPT, väldigt oklart om detta är OK sätt att skicka?
-    //kommer behövas ändras
-//    private void sendQuestionToPlayers() throws IOException {
-//        if (currentQuestionIndex < questions.size()) {
-//            QuestionsAndAnswers question = questions.get(currentQuestionIndex);
-//
-//            toPlayerOne.writeObject(question);
-//            toPlayerTwo.writeObject(question);
-//        }
-//    }
-
-    // Ingen aning om vad "ClassNotFoundException" är men den kom till när jag skrev ".readObject."
-//    private void receiveAndCheckAnswersFromPlayers() throws IOException, ClassNotFoundException {
-//        String playerOneAnswer = (String) fromPlayerOne.readObject();
-//        String playerTwoAnswer = (String) fromPlayerTwo.readObject();
-//
-//        QuestionsAndAnswers question = questions.get(currentQuestionIndex);
-//
-//        // Vet ej varför dom blir röda, men kanske inte ens behövs?
-//        if (playerOneAnswer.equalsIgnoreCase(question.getCorrectAnswer()) ) {
-//            toPlayerOne.writeObject("Rätt Svar!");
-//        } else {
-//            toPlayerOne.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
-//        }
-//
-//        // Vet ej varför dom blir röda, men kanske inte ens behövs?
-//        if (playerTwoAnswer.equalsIgnoreCase( question.getCorrectAnswer())) {
-//            toPlayerTwo.writeObject("Rätt Svar!");
-//        } else {
-//            toPlayerTwo.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
-//        }
-//
-//        currentQuestionIndex++;
-//    }
 }
 
 
