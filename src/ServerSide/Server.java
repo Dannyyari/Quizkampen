@@ -113,6 +113,8 @@ public class Server extends Thread implements Serializable{
         return listOfDAO;
     }
 
+
+
     public void sendCategoriesToClient(ObjectOutputStream oos, List<DAO> DAOS) throws IOException {
         String cat= "";
         oos.writeObject("CATEGORY");
