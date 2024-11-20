@@ -44,58 +44,58 @@ public class GameGUI extends Thread implements Serializable {
     // Totalt antal rundor (baserat på vad som står i properties)
 
     public GameGUI() throws IOException, ClassNotFoundException {
-        Object fromServer=inFromServer.readObject();
-        try (Socket clientSocket = new Socket(iadr, port);){
+
+         Socket clientSocket = new Socket(iadr, port);
             outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
             inFromServer = new ObjectInputStream(clientSocket.getInputStream());
             readerBuff =new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            this.start();
 
-
-            while ((fromServer =  inFromServer.readObject())!=null){
-                if (fromServer instanceof String string){
-                    if (string.equals("CATEGORY")){
-                    categoryList.add(readerBuff.readLine());
-                    createCategoryPanel(categoryList);
-                    } else if (string.equals("QUESTIONS")) {
-
-                    }
-                } else if ( fromServer instanceof QuestionsAndAnswers questions) {
-
-                }
-
-            }
+    }
 //                Object o = ((List) fromServer).get(0);
 //                if (o instanceof QuestionsAndAnswers listan){
 //                    //gör en cast på hela listan, safe för du vet typen
 //                    anatomyQnA.add(listan);
 //                }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
+@Override
     public void run(){
         try {
-            new GameGUI();
+            while (true){
+                Object fromServer=inFromServer.readObject();
+                if (fromServer instanceof String) {
+                    String incoming= (String) fromServer;
+
+                    if (incoming.equals("CATEGORY")) {
+                        categoryList= (List<String>) inFromServer.readObject();
+                     //   categoryList.add(readerBuff.readLine());
+                        createCategoryPanel(categoryList);
+                    }
+                    if (incoming.equals("QUESTIONS")) {
+                        if (fromServer instanceof QuestionsAndAnswers qna) {
+                            questionsList=(List <QuestionsAndAnswers>)inFromServer.readObject();
+                            //questionGUI, tar in list av questionsandanswers som inparameter
+                        }
+                    }
+            }
+            }
+
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        new GameGUI().start();
-    }
+      new GameGUI().start();
 
+    }
 
     public void getCategory(String chosenCategory){
 
     }
-
-
 
     public void sendCategorySelection(ObjectOutputStream outputStream, String selectedCategory) throws IOException {
         outputStream.writeObject(selectedCategory); // Skicka kategori som sträng

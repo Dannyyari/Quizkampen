@@ -18,7 +18,7 @@ public class Server extends Thread implements Serializable{
     private ObjectInputStream fromPlayerTwo;
 
     private List<QuestionsAndAnswers> questions;
-    private int currentQuestionIndex=0; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
+    private int currentQuestionIndex=0;
     private String pathToSport = "src/Questions/textfiles/SportQuestions";
     private String pathToGeo = "src/Questions/textfiles/GeoQuestions";
     private String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
@@ -38,13 +38,6 @@ public class Server extends Thread implements Serializable{
     private final static int totalQuestions = settings.getQuestions();
     private final static int totalRounds = settings.getRounds();
 
-    // dessa två måste någ justeras då vi kommer skicka Seraliserade objekt?
-    // Titta igenom denna fråga och se ifall vi behöver ändra
-
-    // try(PrintWriter toUser= new PrintWriter(socket.getOutputStream(), true);
-    // BufferedReader fromUser=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-
     //kopplar två spelare
     public Server(ServerSidePlayer PlayerOne, ServerSidePlayer PlayerTwo) throws IOException {
         this.playerOneSocket = PlayerOne;
@@ -62,47 +55,44 @@ public class Server extends Thread implements Serializable{
             }
     }
 
-      //---------------ALTERNATIV METOD FÖR RUN----------------
-      //Detta är mer ifall det kanske går bättre med protokoll där vi skickar och hämtar baserat på olika states vi är i
-
-      // Skicka kategorier till båda spelarna
-//      sendCategoriesToClient(toPlayerOne, getListOfDAOS());
-//    sendCategoriesToClient(toPlayerTwo, getListOfDAOS());
-//
-//    // Läs kategori från båda spelarna
-//    String categoryPlayerOne = (String) fromPlayerOne.readObject();
-//    String categoryPlayerTwo = (String) fromPlayerTwo.readObject();
-//
-//    // Skicka frågor baserat på valda kategorier
-//    sendQuestionsToClient(toPlayerOne, categoryPlayerOne, getListOfDAOS());
-//    sendQuestionsToClient(toPlayerTwo, categoryPlayerTwo, getListOfDAOS());
-            //-------------------------------------------------
 
     //Frågan är ifall detta är allt som behövs?
-    public void run(){
+    public void run() {
+        boolean playerOneStarts= true;
         //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
         try {
-            //skickar kategorier
-            sendCategoriesToClient(toPlayerOne,getListOfDAOS());
-
-            //tar emot från klient
-            Object inputFromUser= fromPlayerOne.readObject();
-            if (inputFromUser instanceof String chosenCatagory){
-                switch (chosenCatagory){
-                    case "Sport" -> sendQuestionsToClient(toPlayerOne, "Sport", getListOfDAOS());
-                    case "Geo" -> sendQuestionsToClient(toPlayerOne, "Geo", getListOfDAOS());
-                    case "Anatomy" -> sendQuestionsToClient(toPlayerOne, "Anatomy", getListOfDAOS());
-                    case "History" -> sendQuestionsToClient(toPlayerOne, "History", getListOfDAOS());
-                    default -> throw new IllegalArgumentException("Ogiltig kategori: " + inputFromUser);
+            while (true) {
+                for (int round = 1; round <= settings.getRounds() ; round++) {
+                    System.out.println("Runda " + round + " börjar nu!");
+                    if (playerOneStarts){
+                        handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo,fromPlayerTwo);
+                        playerOneStarts=false;
+                    } else {
+                    handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
+                        playerOneStarts=true;
+                    }
+//                    //skickar kategorier
+//                    sendCategoriesToClient(toPlayerOne, getListOfDAOS());
+//                    //tar emot från klient
+//                    String categoryFromUser = (String) fromPlayerOne.readObject();
+//                    if (categoryFromUser instanceof String chosenCatagory) {
+//                        switch (chosenCatagory) {
+//                            case "Sport" -> sendQuestionsToClient(toPlayerOne, "Sport", getListOfDAOS());
+//                            case "Geo" -> sendQuestionsToClient(toPlayerOne, "Geo", getListOfDAOS());
+//                            case "Anatomy" -> sendQuestionsToClient(toPlayerOne, "Anatomy", getListOfDAOS());
+//                            case "History" -> sendQuestionsToClient(toPlayerOne, "History", getListOfDAOS());
+//                            default -> throw new IllegalArgumentException("Ogiltig kategori: " + categoryFromUser);
+//                        }
+//                    }
                 }
             }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     public List<DAO> getListOfDAOS(){
         List<DAO> listOfDAO=new ArrayList<>();
@@ -113,27 +103,107 @@ public class Server extends Thread implements Serializable{
         return listOfDAO;
     }
 
+    //Skickar LIST <STRING>!!!!!
     public void sendCategoriesToClient(ObjectOutputStream oos, List<DAO> DAOS) throws IOException {
-        String cat= "";
-        oos.writeObject("CATEGORY");
+        List<String> categories = new ArrayList<>();
         for (DAO dao : DAOS) {
-            oos.writeObject( cat=dao.getCategory());
-
+            categories.add(dao.getCategory());
         }
+
+        oos.writeObject("CATEGORY");
+        oos.writeObject(categories);
         oos.flush();
     }
 
-    //vi måste skicka STRING från användaren för att veta vilka frågor vi ska ge
-    public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
-        for (DAO dao : DAOS) {
-            if (dao.getCategory().equals(categoryNameinputFromUser)) {
-                oos.writeObject("QUESTIONS");
-                oos.writeObject(dao.getQuestionsAndAnswers()); // Serialiserar och skickar frågorna
-                oos.flush();
-                return;
+//    //vi måste skicka STRING från användaren för att veta vilka frågor vi ska ge
+//    public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
+//        for (DAO dao : DAOS) {
+//            if (dao.getCategory().equals(categoryNameinputFromUser)) {
+//                oos.writeObject("QUESTIONS");
+//                oos.writeObject(dao.getQuestionsAndAnswers()); // Serialiserar och skickar frågorna
+//                oos.flush();
+//                return;
+//            }
+//        }
+//        throw new IllegalArgumentException("Kategori ej hittad: " + categoryNameinputFromUser);
+//    }
+
+    public void handlePlayerAnswers(ObjectOutputStream outToPlayer, ObjectInputStream inFromPlayer,
+                                    List<QuestionsAndAnswers> questionsForCategory)
+            throws IOException, ClassNotFoundException {
+
+        outToPlayer.writeObject("ANSWER_QUESTIONS");
+        outToPlayer.flush();
+
+
+
+        int correctAnswers = 0;
+
+        for (int i = 0; i < settings.getQuestions(); i++) {
+            QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
+            outToPlayer.writeObject(question.getQuestion()); // Skicka frågan till spelaren
+            outToPlayer.flush();
+
+            String playerAnswer = (String) inFromPlayer.readObject(); // Ta emot spelarens svar
+
+            // Validera spelarens svar
+            if (question.getCorrectAnswer().equalsIgnoreCase(playerAnswer.trim())) {
+                correctAnswers++;
+                //kanske ha en checkanswer i varje metod i GUI där vi har en sträng som inparameter, om CORRECT så ska
+                //knappen bli grön?
+                outToPlayer.writeObject("CORRECT"); // Informera spelaren att svaret var rätt
+            } else {
+                outToPlayer.writeObject("WRONG"); // Informera spelaren att svaret var fel
             }
+            outToPlayer.flush();
         }
-        throw new IllegalArgumentException("Kategori ej hittad: " + categoryNameinputFromUser);
+
+        // Skicka resultatet till spelaren
+        outToPlayer.writeObject("RESULT");
+        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + settings.getQuestions());
+        outToPlayer.flush();
+    }
+
+    public void handleRound(ObjectOutputStream chooserOut, ObjectInputStream chooserIn,
+                             ObjectOutputStream otherPlayerOut, ObjectInputStream otherPlayerIn)
+            throws IOException, ClassNotFoundException {
+
+        // Spelare som väljer kategori
+        sendCategoriesToClient(chooserOut, getListOfDAOS());
+        String chosenCategory = (String) chooserIn.readObject();
+
+        if (!checkCategoryAnswer(chosenCategory)) {
+            chooserOut.writeObject("INVALID_CATEGORY");
+            chooserOut.flush();
+            return;
+        }
+
+        //Placerar frågor från vald kategori in till en lista som skickas ut till klient.
+        List<QuestionsAndAnswers> questionToSendToClientBasedOnCategory=
+                getQuestionsByChosenCategory(chosenCategory, getListOfDAOS());
+
+
+        // Spelaren som valde svarar först
+        handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory);
+
+        // Andra spelaren svarar på samma frågor
+        handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory);
+    }
+    public boolean checkCategoryAnswer(String categoryFromUSer){
+        List<String> validCategories= List.of("Sport", "Geo", "Anatomy", "History");
+        return validCategories.contains(categoryFromUSer);
+    }
+
+    //förenklad metod inne i handleRound för att ta ut frågor och alla svar i en lista som ska skickas till klienten
+    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String catagory, List<DAO> daos){
+        for (DAO dao : daos) {
+            if (dao.getCategory().equalsIgnoreCase(catagory)) {
+                return dao.getQuestionsAndAnswers();
+            }
+
+        }
+        return null;
+
     }
 
 }
