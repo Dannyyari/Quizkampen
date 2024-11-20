@@ -62,18 +62,18 @@ public class GameGUI extends Thread implements Serializable {
         try {
             while (true){
                 Object fromServer=inFromServer.readObject();
-                if (fromServer instanceof String) {
-                    String incoming= (String) fromServer;
-
-                    if (incoming.equals("CATEGORY")) {
+                if (fromServer instanceof String s) {
+                    if (s.equals("CATEGORY")) {
                         categoryList= (List<String>) inFromServer.readObject();
                      //   categoryList.add(readerBuff.readLine());
                         createCategoryPanel(categoryList);
                     }
-                    if (incoming.equals("QUESTIONS")) {
+                    if (s.equals("QUESTIONS")) {
                         if (fromServer instanceof QuestionsAndAnswers qna) {
                             questionsList=(List <QuestionsAndAnswers>)inFromServer.readObject();
                             //questionGUI, tar in list av questionsandanswers som inparameter
+                            //Hur ska vi föra dessa in i GUI??
+                            //kommer detta funka? Fråga Sigrun?
                         }
                     }
             }
@@ -88,14 +88,19 @@ public class GameGUI extends Thread implements Serializable {
         }
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
-      new GameGUI().start();
-
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(GameGUI::createAndShowGUI);
     }
 
-    public void getCategory(String chosenCategory){
+    private static void createAndShowGUI() {
+        JFrame frame = new JFrame("Game Interface");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 400);
+        frame.setLayout(new BorderLayout());
 
+        frame.setVisible(true);
     }
+
 
     public void sendCategorySelection(ObjectOutputStream outputStream, String selectedCategory) throws IOException {
         outputStream.writeObject(selectedCategory); // Skicka kategori som sträng
@@ -107,15 +112,15 @@ public class GameGUI extends Thread implements Serializable {
     }
 
 
-
-
     // Skapa kategoripanelen
     private static JPanel createCategoryPanel(List <String> categoryList) {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
         panel.add(categoryLabel, BorderLayout.NORTH);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
+
+        
         JButton sportButton = new JButton(categoryList.get(0));
         JButton anatomyButton = new JButton(categoryList.get(1));
         JButton geoButton = new JButton(categoryList.get(2));

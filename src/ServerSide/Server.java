@@ -70,20 +70,8 @@ public class Server extends Thread implements Serializable{
                     } else {
                     handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
                         playerOneStarts=true;
+
                     }
-//                    //skickar kategorier
-//                    sendCategoriesToClient(toPlayerOne, getListOfDAOS());
-//                    //tar emot från klient
-//                    String categoryFromUser = (String) fromPlayerOne.readObject();
-//                    if (categoryFromUser instanceof String chosenCatagory) {
-//                        switch (chosenCatagory) {
-//                            case "Sport" -> sendQuestionsToClient(toPlayerOne, "Sport", getListOfDAOS());
-//                            case "Geo" -> sendQuestionsToClient(toPlayerOne, "Geo", getListOfDAOS());
-//                            case "Anatomy" -> sendQuestionsToClient(toPlayerOne, "Anatomy", getListOfDAOS());
-//                            case "History" -> sendQuestionsToClient(toPlayerOne, "History", getListOfDAOS());
-//                            default -> throw new IllegalArgumentException("Ogiltig kategori: " + categoryFromUser);
-//                        }
-//                    }
                 }
             }
         } catch (ClassNotFoundException e) {
@@ -114,7 +102,6 @@ public class Server extends Thread implements Serializable{
         oos.writeObject(categories);
         oos.flush();
     }
-
 //    //vi måste skicka STRING från användaren för att veta vilka frågor vi ska ge
 //    public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
 //        for (DAO dao : DAOS) {
