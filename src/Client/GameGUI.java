@@ -89,17 +89,36 @@ public class GameGUI extends Thread implements Serializable {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(GameGUI::createAndShowGUI);
+        SwingUtilities.invokeLater(() -> {
+            String playerName = askForPlayerName();
+            createAndShowGUI(playerName);
+        });
     }
 
-    private static void createAndShowGUI() {
-        JFrame frame = new JFrame("Game Interface");
+
+
+    private static void createAndShowGUI(String playerName) {
+        frame = new JFrame("Game Interface");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(300, 400);
         frame.setLayout(new BorderLayout());
 
+        mainPanel = createMainPanel(playerName);
+        frame.add(mainPanel, BorderLayout.CENTER);
+
         frame.setVisible(true);
     }
+
+    private static String askForPlayerName() {
+        String name = JOptionPane.showInputDialog(
+                null,
+                "Ange ditt namn:",
+                "Välkommen till spelet",
+                JOptionPane.PLAIN_MESSAGE);
+        return name != null && !name.trim().isEmpty() ? name : "Spelare 1";
+    }
+
+
 
 
     public void sendCategorySelection(ObjectOutputStream outputStream, String selectedCategory) throws IOException {
@@ -136,8 +155,9 @@ public class GameGUI extends Thread implements Serializable {
         return panel;
     }
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
-    private static JPanel createMainPanel() {
+    private static JPanel createMainPanel(String playerName) {
         JPanel panel = new JPanel(new BorderLayout());
+
 
         // Toppanel
         JPanel topPanel = new JPanel();
