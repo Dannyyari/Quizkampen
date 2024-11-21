@@ -17,7 +17,7 @@ public class ServerListner {
 
                 ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), "Spelare 2");
                 System.out.println("två spelare anslutna, nu kör vi!");
-                Server server= new Server(player1,player2);
+                ServerGame server= new ServerGame(player1,player2);
 
                 server.start();
             }

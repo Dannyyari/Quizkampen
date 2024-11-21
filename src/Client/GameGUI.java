@@ -14,7 +14,7 @@ import java.util.List;
 public class GameGUI extends Thread implements Serializable {
 
     //ServerKlientArk
-    private BufferedReader writerToServerForTestEmilAndDanialWantedToSee;
+    private BufferedReader readingfromserver;
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
     private BufferedReader readerBuff;
@@ -50,49 +50,62 @@ public class GameGUI extends Thread implements Serializable {
             outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
             inFromServer = new ObjectInputStream(clientSocket.getInputStream());
             readerBuff =new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            writerToServerForTestEmilAndDanialWantedToSee=new BufferedReader(new InputStreamReader(System.in));
+            readingfromserver =new BufferedReader(new InputStreamReader(System.in));
             this.start();
     }
 
     public void run(){
         try {
             while (true) {
-                System.out.println("client in run loop");
+
                 Object fromServer = inFromServer.readObject();
-                if (fromServer instanceof String s) {
-                    if (s.equals("CATEGORY")) {;
+                if (fromServer instanceof String state) {
+                    System.out.println("Mottagen state från servern" + state);
+                    if (state.equals("STATE_CATEGORY")) {;
+                        System.out.println("State question, välj");
                         categoryList = (List<String>) inFromServer.readObject();
                         System.out.println(categoryList);
-                        String q=writerToServerForTestEmilAndDanialWantedToSee.readLine();
+                        String q= readingfromserver.readLine();
                         outToServer.writeObject(q);
-                        //   categoryList.add(readerBuff.readLine());
+                        //categoryList.add(readerBuff.readLine());
                         //Hur ska vi skapa GUI här?
-                      //  createCategoryPanel(categoryList);
+                        //createCategoryPanel(outToServer,categoryList); <---------------------------------------------------------------------------------------
                         //catagoryPanel ska skicka tillbaka en sträng, kanske placera in en oos i konstuktor?
                         //ha en outputstream till server med svar(Sträng)
                     }
-                    if (s.equals("QUESTIONS")) {
-                        if (fromServer instanceof QuestionsAndAnswers qna) {
-                            questionsList = (List<QuestionsAndAnswers>) inFromServer.readObject();
+                    if (state.equals("STATE_QUESTIONS")) {
+                        System.out.println("SVARA PÅ FRÅGAN");
+                        for (int i = 0; i <totalQuestions ; i++) {
+                            String q = readingfromserver.readLine();
+                            outToServer.writeObject(q);
+                            System.out.println("Tack för svaret");
+                            i++;
+//                          String q1 = readingfromserver.readLine();
+//                          outToServer.writeObject(q1);
+//                          questionsList = (List<QuestionsAndAnswers>) inFromServer.readObject();
                             //questionGUI, tar in list av questionsandanswers som inparameter
                             //SKICKA TILLBAKA STRÄNG TILL SERVER MED VALD SVAR
 
                             //här kollar vi ifall servern skickar tillbaka Correct så ska vi plussa på våra poäng.
                             //Kanske onödig men kan vara bra att ha för att hålla koll på det vi gjort
-                            if (readerBuff.readLine() == "CORRECT") {
-                                score++;
-                            } else {
-                                return;
-                            }
+
                             //Hur ska vi föra dessa in i GUI??
                             //kommer detta funka? Fråga Sigrun?
                         }
-                    }
-                    if (s.equals("RESAULT")) {
-                        String resaultOfCurrentPlayer = readerBuff.readLine();
-                    }
-                    if (s.equals("POINTSOFROUND")){
+                        if (state.equals("STATE_RESULT")) {
 
+                      //      String point =readingfromserver.readLine();
+                            String point =(String) fromServer;
+                            System.out.println("Poäng från server: " + point);
+                    }
+                    if (state.equals("CORRECT")) {
+                        score++;
+                        System.out.println("du har svarat rätt");
+                    }
+
+                    }
+                    if (state.equals("STATE_POINTSOFROUND")){
+                        System.out.println(state);
                     }
                 }
             }
@@ -137,7 +150,7 @@ public class GameGUI extends Thread implements Serializable {
 
     //FRÅGA SIGRUN, kan panelerna skicka ut svar?
     // Skapa kategoripanelen
-    private static JPanel createCategoryPanel(List <String> categoryList) {
+    private static JPanel createCategoryPanel(ObjectOutputStream toServerSendString, List <String> categoryList) {
 
         JPanel panel = new JPanel(new BorderLayout());
         JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
@@ -145,7 +158,6 @@ public class GameGUI extends Thread implements Serializable {
 
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
 
-        
         categoryButton1 = new JButton(categoryList.get(0));
         categoryButton2= new JButton(categoryList.get(1));
         categoryButton3 = new JButton(categoryList.get(2));
@@ -162,6 +174,10 @@ public class GameGUI extends Thread implements Serializable {
        // categoryButton1.addActionListener(this);
 
         //ACTIONLISTNER TILL SERVER SKICKA STRÄNG!!!
+        //kan vi skicka en sträng direkt härifrån
+
+        //om JA knapp -> hämta sträng och toServerSendString.wirteobject("sträng som vi tryckt på")
+        //Om NEJ -> ta bort "toServerSendString"
 
 
         return panel;
@@ -223,10 +239,10 @@ public class GameGUI extends Thread implements Serializable {
         String questionText = questions.get(currentQuestionIndex).getQuestion();
         questionLabel = new JLabel(questionText, SwingConstants.CENTER);
         panel.add(questionLabel, BorderLayout.NORTH);
-        String correctAnswer= questions.get(1).getCorrectAnswer();
-        String answer2= questions.get(2).getCorrectAnswer();
-        String answer3= questions.get(3).getCorrectAnswer();
-        String answer4= questions.get(4).getCorrectAnswer();
+        String correctAnswer= questions.get(currentQuestionIndex).getCorrectAnswer();
+        String answer2= questions.get(currentQuestionIndex).getAnswer2();
+        String answer3= questions.get(currentQuestionIndex).getAnswer3();
+        String answer4= questions.get(currentQuestionIndex).getAnswer4();
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         answerButton1 = new JButton(correctAnswer);
