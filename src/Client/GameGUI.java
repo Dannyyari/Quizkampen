@@ -25,6 +25,8 @@ public class GameGUI extends Thread implements Serializable {
     private InetAddress iadr = InetAddress.getLoopbackAddress();
     int port = 55555;
 
+
+
     //frågor och svar
     private List<QuestionsAndAnswers> anatomyQnA;
     private List<QuestionsAndAnswers> geoQnA;
@@ -274,6 +276,7 @@ public class GameGUI extends Thread implements Serializable {
 
     // Ladda aktuell fråga
     private static void loadQuestion() {
+
         QuestionsAndAnswers currentQuestion = database.getNextQuestion();
 
         questionLabel.setText(currentQuestion.getQuestion());
