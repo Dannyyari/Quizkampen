@@ -33,9 +33,9 @@ public class GameGUI extends Thread implements Serializable {
     private static JButton categoryButton1, categoryButton2, categoryButton3, categoryButton4;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
+    private int score;
 
-
-    static RoundSettings settings;
+    static RoundSettings settings = new RoundSettings();
     private static int totalQuestions= settings.getQuestions();
     private static int totalRounds = settings.getRounds();
     private static int currentQuestionIndex = 0;
@@ -64,14 +64,25 @@ public class GameGUI extends Thread implements Serializable {
                         categoryList= (List<String>) inFromServer.readObject();
                      //   categoryList.add(readerBuff.readLine());
                         createCategoryPanel(categoryList);
+                        //ha en outputstream till server med svar(Sträng)
                     }
                     if (s.equals("QUESTIONS")) {
+
                         if (fromServer instanceof QuestionsAndAnswers qna) {
                             questionsList=(List <QuestionsAndAnswers>)inFromServer.readObject();
                             //questionGUI, tar in list av questionsandanswers som inparameter
+                            //SKICKA TILLBAKA STRÄNG TILL SERVER MED VALD SVAR
+                            if (readerBuff.readLine()=="CORRECT"){
+                                score++;
+                            }
+                            else{
+                                return;
+                            }
                             //Hur ska vi föra dessa in i GUI??
                             //kommer detta funka? Fråga Sigrun?
                         }
+                    }if (s.equals("RESAULT")){
+
                     }
             }
             }
@@ -114,6 +125,7 @@ public class GameGUI extends Thread implements Serializable {
     }
 
 
+    //FRÅGA SIGRUN, kan panelerna skicka ut svar?
     // Skapa kategoripanelen
     private static JPanel createCategoryPanel(List <String> categoryList) {
         JPanel panel = new JPanel(new BorderLayout());
@@ -123,18 +135,21 @@ public class GameGUI extends Thread implements Serializable {
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
 
         
-        JButton sportButton = new JButton(categoryList.get(0));
-        JButton anatomyButton = new JButton(categoryList.get(1));
-        JButton geoButton = new JButton(categoryList.get(2));
-        JButton historyButton = new JButton(categoryList.get(3));
+        categoryButton1 = new JButton(categoryList.get(0));
+        categoryButton2= new JButton(categoryList.get(1));
+        categoryButton3 = new JButton(categoryList.get(2));
+        categoryButton4 = new JButton(categoryList.get(3));
 
 
-        buttonPanel.add(sportButton);
-        buttonPanel.add(geoButton);
-        buttonPanel.add(anatomyButton);
-        buttonPanel.add(historyButton);
+        buttonPanel.add(categoryButton1);
+        buttonPanel.add(categoryButton2);
+        buttonPanel.add(categoryButton3);
+        buttonPanel.add(categoryButton4);
 
         panel.add(buttonPanel, BorderLayout.CENTER);
+
+        //ACTIONLISTNER TILL SERVER SKICKA STRÄNG!!!
+
         return panel;
     }
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
@@ -159,7 +174,7 @@ public class GameGUI extends Thread implements Serializable {
         playerPanel.add(player2Label);
 
         // Panel för cirklar under Spelare 1 och Motståndare
-        JPanel circlesPanel = getCirclesPanel();
+      //  JPanel circlesPanel = getCirclesPanel();
 
         // Lägg till komponenter till toppanelen
         topPanel.add(turnLabel);
@@ -223,21 +238,6 @@ public class GameGUI extends Thread implements Serializable {
         return panel;
     }
 
-    // Ladda aktuell fråga
-    //kommer det gå att ha denna metod för att ladda in frågorna?
-    //De kommer sparas i varsin List <QuestionsAndAnswers>
-   /*
-    private static void loadQuestion() {
-        QuestionsAndAnswers currentQuestion =
-
-        questionLabel.setText(currentQuestion.getQuestion());
-        answerButton1.setText(currentQuestion.getCorrectAnswer());
-        answerButton2.setText(currentQuestion.getAnswer2());
-        answerButton3.setText(currentQuestion.getAnswer3());
-        answerButton4.setText(currentQuestion.getAnswer4());
-    }
-*/
-
 
     // Hantera slutet av en runda
     private static void handleEndOfRound() {
@@ -255,6 +255,7 @@ public class GameGUI extends Thread implements Serializable {
         frame.revalidate();
         frame.repaint();
     }
+    /*
     // Skapa cirkelpanelen för poängvisning
     private static JPanel getCirclesPanel() {
         JPanel circlesPanel = new JPanel(new GridLayout(2, 2));
@@ -295,4 +296,8 @@ public class GameGUI extends Thread implements Serializable {
 
         return circlesPanel;
     }
+
+     */
+
+
 }
