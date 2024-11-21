@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.net.ServerSocket;
 
 public class ServerListener {
-    private int port= 55555;
+    private int port= 55553;
 
     public ServerListener() {
         try (ServerSocket serverSocket = new ServerSocket(port);) {

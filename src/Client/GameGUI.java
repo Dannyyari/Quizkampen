@@ -17,7 +17,7 @@ public class GameGUI extends Thread implements Serializable {
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
     private BufferedReader readerBuff;
-    private InetAddress iadr = InetAddress.getByName("172.20.204.34");
+    private InetAddress iadr = InetAddress.getLoopbackAddress();
     int port = 55555;
 
 
@@ -134,7 +134,7 @@ public class GameGUI extends Thread implements Serializable {
 
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
 
-        
+
         categoryButton1 = new JButton(categoryList.get(0));
         categoryButton2= new JButton(categoryList.get(1));
         categoryButton3 = new JButton(categoryList.get(2));
@@ -183,7 +183,7 @@ public class GameGUI extends Thread implements Serializable {
 
         // Mittenpanel med cirklar
         JPanel middlePanel = new JPanel(new BorderLayout());
-        // middlePanel.add(circlesPanel, BorderLayout.CENTER);
+        middlePanel.add(circlesPanel, BorderLayout.CENTER);
 
         // Bottenpanel med "Spela"-knappen
         JPanel bottomPanel = new JPanel();
