@@ -68,10 +68,11 @@ public class Server extends Thread implements Serializable{
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts){
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo,fromPlayerTwo);
-                        showresault(toPlayerOne, toPlayerTwo);
+                        getResault(toPlayerOne, toPlayerTwo);
                         playerOneStarts=false;
                     } else {
                     handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
+                        getResault(toPlayerTwo, toPlayerOne);
                         playerOneStarts=true;
 
                     }
@@ -106,20 +107,22 @@ public class Server extends Thread implements Serializable{
         oos.flush();
     }
 
-    public void getResault(ObjectOutputStream oos1, ObjectOutputStream oos2){
-
+    public void getResault(ObjectOutputStream oos1, ObjectOutputStream oos2) throws IOException {
+        oos1.writeObject("POINTSOFROUND");
+        //gör en totalint för att skicka samma till båda
+        oos1.writeObject(playerOneScore);
+        oos2.writeObject(playerTwoScore);
     }
 
     public void handlePlayerAnswers(ObjectOutputStream outToPlayer, ObjectInputStream inFromPlayer,
-                                    List<QuestionsAndAnswers> questionsForCategory)
+                                    List<QuestionsAndAnswers> questionsForCategory, int playerscore)
             throws IOException, ClassNotFoundException {
 
         outToPlayer.writeObject("QUESTIONS");
         outToPlayer.flush();
 
 
-
-        int correctAnswers = 0;
+       int correctAnswers = playerscore;
 
         for (int i = 0; i < totalQuestions; i++) {
             QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
@@ -165,14 +168,13 @@ public class Server extends Thread implements Serializable{
         List<QuestionsAndAnswers> questionToSendToClientBasedOnCategory=
                 getQuestionsByChosenCategory(chosenCategory, getListOfDAOS());
 
+        //göra om detta så att raderna under skiftar, vi vill inte alltid lagra playerOneScore i den första.
 
         // Spelaren som valde svarar först
-        handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory);
+        handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, playerOneScore);
 
         // Andra spelaren svarar på samma frågor
-        handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory);
-
-
+        handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, playerTwoScore);
 
         //KANSKE
         //SCOREBOARD

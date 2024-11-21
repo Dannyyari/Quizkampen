@@ -12,12 +12,10 @@ public class ServerListner {
             System.out.println("QUIZKAMPEN");
             while (true){
                 System.out.println("väntar på spelare");
-                String nameP1= JOptionPane.showInputDialog("VAD HETER DU");
-                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), nameP1);
+                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), "Spelare 1");
                 System.out.println("en spelare ansluten");
 
-                String nameP2= JOptionPane.showInputDialog("VAD HETER DU");
-                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), nameP2);
+                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), "Spelare 2");
                 System.out.println("två spelare anslutna, nu kör vi!");
                 Server server= new Server(player1,player2);
 
