@@ -9,26 +9,25 @@ import java.util.Collections;
 import java.util.List;
 
 public class DAO implements Serializable {
-    List<QuestionsAndAnswers> QuestionsAndAnswers =new ArrayList<>();
+    List<QuestionsAndAnswers> QuestionsAndAnswers = new ArrayList<>();
     private String path;
     private String category;
 
 
     public DAO(String category, String path){
-        this.category=category;
-        this.path=path;
+        this.category = category;
+        this.path = path;
         loader();
     }
 
     private void loader(){
-        try (BufferedReader reader=new BufferedReader(new FileReader(path))){
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))){
             String temp;
-            while ((temp=reader.readLine())!=null){
-                String[] strArray=temp.split(", ");
-                QuestionsAndAnswers.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4] ));
+            while ((temp = reader.readLine()) !=null){
+                String[] strArray = temp.split(", ");
+                QuestionsAndAnswers.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4]));
             }
-
-        }catch (IOException e){
+        } catch (IOException e){
             e.printStackTrace();
         }
     }

@@ -13,7 +13,7 @@ public class ServerSidePlayer {
     }
 
     public void setOpponent(ServerSidePlayer opponent){
-        this.opponent=opponent;
+        this.opponent = opponent;
     }
 
     public Socket getSock() {
