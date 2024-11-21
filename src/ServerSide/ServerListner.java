@@ -1,5 +1,6 @@
 package ServerSide;
 
+import javax.swing.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -9,12 +10,14 @@ public class ServerListner {
     public ServerListner() {
         try (ServerSocket serverSocket = new ServerSocket(port);) {
             System.out.println("QUIZKAMPEN");
-            System.out.println();
-            while (!serverSocket.isClosed()){
-                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), "Emil");
+            while (true){
+                System.out.println("väntar på spelare");
+                String nameP1= JOptionPane.showInputDialog("VAD HETER DU");
+                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), nameP1);
                 System.out.println("en spelare ansluten");
 
-                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), "Emil");
+                String nameP2= JOptionPane.showInputDialog("VAD HETER DU");
+                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), nameP2);
                 System.out.println("två spelare anslutna, nu kör vi!");
                 Server server= new Server(player1,player2);
 

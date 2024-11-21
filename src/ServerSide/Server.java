@@ -48,6 +48,7 @@ public class Server extends Thread implements Serializable{
                 toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getSock().getOutputStream());
                 fromPlayerOne = new ObjectInputStream(playerOneSocket.getSock().getInputStream());
                 fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getSock().getInputStream());
+                System.out.println("binding streams done");
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -62,10 +63,12 @@ public class Server extends Thread implements Serializable{
         //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
         try {
             while (true) {
-                for (int round = 1; round <= settings.getRounds() ; round++) {
+                System.out.println("in server loop");
+                for (int round = 1; round <= totalRounds ; round++) {
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts){
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo,fromPlayerTwo);
+                        showresault(toPlayerOne, toPlayerTwo);
                         playerOneStarts=false;
                     } else {
                     handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
@@ -102,31 +105,23 @@ public class Server extends Thread implements Serializable{
         oos.writeObject(categories);
         oos.flush();
     }
-//    //vi måste skicka STRING från användaren för att veta vilka frågor vi ska ge
-//    public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
-//        for (DAO dao : DAOS) {
-//            if (dao.getCategory().equals(categoryNameinputFromUser)) {
-//                oos.writeObject("QUESTIONS");
-//                oos.writeObject(dao.getQuestionsAndAnswers()); // Serialiserar och skickar frågorna
-//                oos.flush();
-//                return;
-//            }
-//        }
-//        throw new IllegalArgumentException("Kategori ej hittad: " + categoryNameinputFromUser);
-//    }
+
+    public void getResault(ObjectOutputStream oos1, ObjectOutputStream oos2){
+
+    }
 
     public void handlePlayerAnswers(ObjectOutputStream outToPlayer, ObjectInputStream inFromPlayer,
                                     List<QuestionsAndAnswers> questionsForCategory)
             throws IOException, ClassNotFoundException {
 
-        outToPlayer.writeObject("ANSWER_QUESTIONS");
+        outToPlayer.writeObject("QUESTIONS");
         outToPlayer.flush();
 
 
 
         int correctAnswers = 0;
 
-        for (int i = 0; i < settings.getQuestions(); i++) {
+        for (int i = 0; i < totalQuestions; i++) {
             QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
             outToPlayer.writeObject(question.getQuestion()); // Skicka frågan till spelaren
             outToPlayer.flush();
@@ -146,8 +141,9 @@ public class Server extends Thread implements Serializable{
         }
 
         // Skicka resultatet till spelaren
+        //ta bort här nere???
         outToPlayer.writeObject("RESULT");
-        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + settings.getQuestions());
+        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + totalQuestions);
         outToPlayer.flush();
     }
 
@@ -175,6 +171,16 @@ public class Server extends Thread implements Serializable{
 
         // Andra spelaren svarar på samma frågor
         handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory);
+
+
+
+        //KANSKE
+        //SCOREBOARD
+        //ha en metod som skickar svar till både (chooserOutoch, otherPlayerOut)
+        //har samlat poäng för aktuell runda.
+        //Detta blir då total poäng.
+        //Spelarens egna poäng som personen alltid ska kunna se finns i klient
+
     }
     public boolean checkCategoryAnswer(String categoryFromUSer){
         List<String> validCategories= List.of("Sport", "Geo", "Anatomy", "History");
@@ -192,7 +198,18 @@ public class Server extends Thread implements Serializable{
         return null;
 
     }
-
+//    //vi måste skicka STRING från användaren för att veta vilka frågor vi ska ge
+//    public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
+//        for (DAO dao : DAOS) {
+//            if (dao.getCategory().equals(categoryNameinputFromUser)) {
+//                oos.writeObject("QUESTIONS");
+//                oos.writeObject(dao.getQuestionsAndAnswers()); // Serialiserar och skickar frågorna
+//                oos.flush();
+//                return;
+//            }
+//        }
+//        throw new IllegalArgumentException("Kategori ej hittad: " + categoryNameinputFromUser);
+//    }
 }
 
 
