@@ -2,52 +2,52 @@ package ServerSide;
 
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
-import Questions.RoundSettings;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
+import Properties.RoundSettings;
+
 import java.io.*;
-import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Server extends Thread {
-    Socket playerOneSocket;
-    Socket playerTwoSocket;
-
-    private List<QuestionsAndAnswers> questions;
-    private int currentQuestionIndex; // FRÅGA! Ska inte index börja från 0 för att veta var man är?
+public class Server extends Thread implements Serializable{
+    ServerSidePlayer playerOneSocket;
+    ServerSidePlayer playerTwoSocket;
 
     private ObjectOutputStream toPlayerOne;
     private ObjectOutputStream toPlayerTwo;
     private ObjectInputStream fromPlayerOne;
     private ObjectInputStream fromPlayerTwo;
 
-    private static DAO database;
+    private List<QuestionsAndAnswers> questions;
+    private int currentQuestionIndex=0;
+    private String pathToSport = "src/Questions/textfiles/SportQuestions";
+    private String pathToGeo = "src/Questions/textfiles/GeoQuestions";
+    private String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
+    private String pathToHistory= "src/Questions/textfiles/HistoryQuestions";
+
+    private DAO sportQuestions= new DAO("Sport", pathToSport);
+    private DAO anatomyQuestions= new DAO("Anatomy", pathToAnatomy);
+    private DAO geoQuestions=new DAO("Geo", pathToGeo);
+    private DAO historyQuestions= new DAO("History", pathToHistory);
+
+
     static RoundSettings settings = settings = new RoundSettings();
 
     //variabler för resten av logiken
     private int playerOneScore;
     private int playerTwoScore;
-    private static int totalQuestions = settings.getQuestions();
-    private static int totalRounds = settings.getRounds();
-
-    // dessa två måste någ justeras då vi kommer skicka Seraliserade objekt?
-    // Titta igenom denna fråga och se ifall vi behöver ändra
-
-    // try(PrintWriter toUser= new PrintWriter(socket.getOutputStream(), true);
-    // BufferedReader fromUser=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
+    private final static int totalQuestions = settings.getQuestions();
+    private final static int totalRounds = settings.getRounds();
 
     //kopplar två spelare
-    public Server(Socket socketPlayerOne, Socket socketPlayerTwo) throws IOException {
-        this.playerOneSocket = socketPlayerOne;
-        this.playerTwoSocket = socketPlayerTwo;
+    public Server(ServerSidePlayer PlayerOne, ServerSidePlayer PlayerTwo) throws IOException {
+        this.playerOneSocket = PlayerOne;
+        this.playerTwoSocket = PlayerTwo;
 
             try {
-                toPlayerOne = new ObjectOutputStream(playerOneSocket.getOutputStream());
-                toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getOutputStream());
-                fromPlayerOne = new ObjectInputStream(playerOneSocket.getInputStream());
-                fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getInputStream());
+                toPlayerOne = new ObjectOutputStream(playerOneSocket.getSock().getOutputStream());
+                toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getSock().getOutputStream());
+                fromPlayerOne = new ObjectInputStream(playerOneSocket.getSock().getInputStream());
+                fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getSock().getInputStream());
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -55,136 +55,144 @@ public class Server extends Thread {
             }
     }
 
-    public void run(){
+
+    //Frågan är ifall detta är allt som behövs?
+    public void run() {
+        boolean playerOneStarts= true;
         //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
         try {
-            toPlayerOne.writeObject("Hej spelare 1");
-            toPlayerTwo.writeObject("Hej spelare 2");
+            while (true) {
+                for (int round = 1; round <= settings.getRounds() ; round++) {
+                    System.out.println("Runda " + round + " börjar nu!");
+                    if (playerOneStarts){
+                        handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo,fromPlayerTwo);
+                        playerOneStarts=false;
+                    } else {
+                    handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
+                        playerOneStarts=true;
+
+                    }
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
 
-    private static JPanel createCategoryPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
-        panel.add(categoryLabel, BorderLayout.NORTH);
+    public List<DAO> getListOfDAOS(){
+        List<DAO> listOfDAO=new ArrayList<>();
+        listOfDAO.add(sportQuestions);
+        listOfDAO.add(anatomyQuestions);
+        listOfDAO.add(geoQuestions);
+        listOfDAO.add(historyQuestions);
+        return listOfDAO;
+    }
 
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
-        JButton sportButton = new JButton("Sport");
-        JButton geoButton = new JButton("Geografi");
-        JButton anatomyButton = new JButton("Anatomy");
+    //Skickar LIST <STRING>!!!!!
+    public void sendCategoriesToClient(ObjectOutputStream oos, List<DAO> DAOS) throws IOException {
+        List<String> categories = new ArrayList<>();
+        for (DAO dao : DAOS) {
+            categories.add(dao.getCategory());
+        }
+
+        oos.writeObject("CATEGORY");
+        oos.writeObject(categories);
+        oos.flush();
+    }
+//    //vi måste skicka STRING från användaren för att veta vilka frågor vi ska ge
+//    public void sendQuestionsToClient(ObjectOutputStream oos, String categoryNameinputFromUser, List<DAO> DAOS) throws IOException {
+//        for (DAO dao : DAOS) {
+//            if (dao.getCategory().equals(categoryNameinputFromUser)) {
+//                oos.writeObject("QUESTIONS");
+//                oos.writeObject(dao.getQuestionsAndAnswers()); // Serialiserar och skickar frågorna
+//                oos.flush();
+//                return;
+//            }
+//        }
+//        throw new IllegalArgumentException("Kategori ej hittad: " + categoryNameinputFromUser);
+//    }
+
+    public void handlePlayerAnswers(ObjectOutputStream outToPlayer, ObjectInputStream inFromPlayer,
+                                    List<QuestionsAndAnswers> questionsForCategory)
+            throws IOException, ClassNotFoundException {
+
+        outToPlayer.writeObject("ANSWER_QUESTIONS");
+        outToPlayer.flush();
 
 
-        ActionListener categoryButtonListener = e -> {
-            String chosenCategory = "";
-            if (e.getSource() == sportButton) {
-                chosenCategory = "Sport";
-            } else if (e.getSource() == geoButton) {
-                chosenCategory = "Geografi";
-            } else if (e.getSource() == anatomyButton) {
-                chosenCategory = "Anatomy";
+
+        int correctAnswers = 0;
+
+        for (int i = 0; i < settings.getQuestions(); i++) {
+            QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
+            outToPlayer.writeObject(question.getQuestion()); // Skicka frågan till spelaren
+            outToPlayer.flush();
+
+            String playerAnswer = (String) inFromPlayer.readObject(); // Ta emot spelarens svar
+
+            // Validera spelarens svar
+            if (question.getCorrectAnswer().equalsIgnoreCase(playerAnswer.trim())) {
+                correctAnswers++;
+                //kanske ha en checkanswer i varje metod i GUI där vi har en sträng som inparameter, om CORRECT så ska
+                //knappen bli grön?
+                outToPlayer.writeObject("CORRECT"); // Informera spelaren att svaret var rätt
+            } else {
+                outToPlayer.writeObject("WRONG"); // Informera spelaren att svaret var fel
             }
-            setDatabase(chosenCategory);
-
-            //OKLART HUR DETTA SKA IMPLEMENTERAS
-
-//            frame.remove(categoryPanel);
-//            frame.add(questionPanel, BorderLayout.CENTER);
-//            loadQuestion();
-//            frame.revalidate();
-//            frame.repaint();
-        };
-
-        //oklart hur allt detta ska bort
-        sportButton.addActionListener(categoryButtonListener);
-        geoButton.addActionListener(categoryButtonListener);
-        anatomyButton.addActionListener(categoryButtonListener);
-
-        buttonPanel.add(sportButton);
-        buttonPanel.add(geoButton);
-        buttonPanel.add(anatomyButton);
-
-        panel.add(buttonPanel, BorderLayout.CENTER);
-        return panel;
-    }
-
-
-    public static void setDatabase(String category) {
-        String pathToSport = "src/Questions/textfiles/SportQuestions";
-        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-        switch (category) {
-            case "Sport":
-                database = new DAO(pathToSport);
-                break;
-            case "Geografi":
-                database = new DAO(pathToGeo);
-                break;
-            case "Anatomy":
-                database = new DAO(pathToAnatomy);
-                break;
-            default:
-                System.out.println("Ogiltig kategori");
-                return;
-        }
-    }
-
-
-    //insprererad av chaGPT, väldigt oklart om detta är OK sätt att skicka?
-    //kommer behövas ändras
-    private void sendQuestionToPlayers() throws IOException {
-        if (currentQuestionIndex < questions.size()) {
-            QuestionsAndAnswers question = questions.get(currentQuestionIndex);
-
-            toPlayerOne.writeObject(question);
-            toPlayerTwo.writeObject(question);
-        }
-    }
-
-    // Ingen aning om vad "ClassNotFoundException" är men den kom till när jag skrev ".readObject."
-    private void receiveAndCheckAnswersFromPlayers() throws IOException, ClassNotFoundException {
-        String playerOneAnswer = (String) fromPlayerOne.readObject();
-        String playerTwoAnswer = (String) fromPlayerTwo.readObject();
-
-        QuestionsAndAnswers question = questions.get(currentQuestionIndex);
-
-        // Vet ej varför dom blir röda, men kanske inte ens behövs?
-        if (playerOneAnswer.equalsIgnoreCase(question.getCorrectAnswer()) ) {
-            toPlayerOne.writeObject("Rätt Svar!");
-        } else {
-            toPlayerOne.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
+            outToPlayer.flush();
         }
 
-        // Vet ej varför dom blir röda, men kanske inte ens behövs?
-        if (playerTwoAnswer.equalsIgnoreCase( question.getCorrectAnswer())) {
-            toPlayerTwo.writeObject("Rätt Svar!");
-        } else {
-            toPlayerTwo.writeObject("Fel svar! Rätt svar är: " + question.getCorrectAnswer());
+        // Skicka resultatet till spelaren
+        outToPlayer.writeObject("RESULT");
+        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + settings.getQuestions());
+        outToPlayer.flush();
+    }
+
+    public void handleRound(ObjectOutputStream chooserOut, ObjectInputStream chooserIn,
+                             ObjectOutputStream otherPlayerOut, ObjectInputStream otherPlayerIn)
+            throws IOException, ClassNotFoundException {
+
+        // Spelare som väljer kategori
+        sendCategoriesToClient(chooserOut, getListOfDAOS());
+        String chosenCategory = (String) chooserIn.readObject();
+
+        if (!checkCategoryAnswer(chosenCategory)) {
+            chooserOut.writeObject("INVALID_CATEGORY");
+            chooserOut.flush();
+            return;
         }
 
-        currentQuestionIndex++;
+        //Placerar frågor från vald kategori in till en lista som skickas ut till klient.
+        List<QuestionsAndAnswers> questionToSendToClientBasedOnCategory=
+                getQuestionsByChosenCategory(chosenCategory, getListOfDAOS());
+
+
+        // Spelaren som valde svarar först
+        handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory);
+
+        // Andra spelaren svarar på samma frågor
+        handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory);
     }
+    public boolean checkCategoryAnswer(String categoryFromUSer){
+        List<String> validCategories= List.of("Sport", "Geo", "Anatomy", "History");
+        return validCategories.contains(categoryFromUSer);
+    }
+
+    //förenklad metod inne i handleRound för att ta ut frågor och alla svar i en lista som ska skickas till klienten
+    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String catagory, List<DAO> daos){
+        for (DAO dao : daos) {
+            if (dao.getCategory().equalsIgnoreCase(catagory)) {
+                return dao.getQuestionsAndAnswers();
+            }
+
+        }
+        return null;
+
+    }
+
 }
 
-    /*
-            // JAG TROR INTE DET HÄR BEHÖVS, KOMMENTERAR UT FOR NOW.
-            String questionText = question.getQuestion();
-            String[] answers = new String[]{
-                    question.getCorrectAnswer(),
-                    question.getAnswer2(),
-                    question.getAnswer3(),
-                    question.getAnswer4()};
-
-            // Skicka frågan och svarsalternativen till båda spelarna
-            toPlayerOneWriter.println(questionText);
-            toPlayerTwoWriter.println(questionText);
-            for (String answer : answers) {
-                toPlayerOneWriter.println(answer);
-                toPlayerTwoWriter.println(answer);
-            }
-        }
-    }
-    */
 

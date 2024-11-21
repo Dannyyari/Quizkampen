@@ -11,11 +11,13 @@ public class ServerListner {
             System.out.println("QUIZKAMPEN");
             System.out.println();
             while (!serverSocket.isClosed()){
-                Socket socketForPlayer1= serverSocket.accept();
+                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), "Emil");
                 System.out.println("en spelare ansluten");
-                Socket socketForPlayer2 = serverSocket.accept();
+
+                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), "Emil");
                 System.out.println("två spelare anslutna, nu kör vi!");
-                Server server= new Server(socketForPlayer1, socketForPlayer2);
+                Server server= new Server(player1,player2);
+
                 server.start();
             }
         } catch (Exception e) {

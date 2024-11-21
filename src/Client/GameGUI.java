@@ -1,41 +1,36 @@
 package Client;
 
-import Questions.DAO;
 import Questions.QuestionsAndAnswers;
-import Questions.RoundSettings;
+import Properties.RoundSettings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
 public class GameGUI extends Thread implements Serializable {
 
     //ServerKlientArk
-    private Socket clientSocket;
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
+    private BufferedReader readerBuff;
     private InetAddress iadr = InetAddress.getLoopbackAddress();
     int port = 55555;
 
 
-
     //frågor och svar
-    private List<QuestionsAndAnswers> anatomyQnA;
-    private List<QuestionsAndAnswers> geoQnA;
-    private List<QuestionsAndAnswers> sportQnA;
+    private List<String> categoryList;
+    private List<QuestionsAndAnswers> questionsList;
+
 
     // Huvudkomponenter
     private static JFrame frame;
     private static JPanel mainPanel, categoryPanel, questionPanel;
     private static JLabel questionLabel;
+    private static JButton categoryButton1, categoryButton2, categoryButton3, categoryButton4;
     private static JButton answerButton1, answerButton2, answerButton3, answerButton4;
 
 
@@ -48,43 +43,98 @@ public class GameGUI extends Thread implements Serializable {
     //ska detta vara 0?
     // Totalt antal rundor (baserat på vad som står i properties)
 
-    public void getStart() {
-        try {
-            clientSocket = new Socket(iadr, port);
+    public GameGUI() throws IOException, ClassNotFoundException {
+
+         Socket clientSocket = new Socket(iadr, port);
             outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
             inFromServer = new ObjectInputStream(clientSocket.getInputStream());
+            readerBuff =new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            this.start();
+
+    }
+//                Object o = ((List) fromServer).get(0);
+//                if (o instanceof QuestionsAndAnswers listan){
+//                    //gör en cast på hela listan, safe för du vet typen
+//                    anatomyQnA.add(listan);
+//                }
+@Override
+    public void run(){
+        try {
+            while (true){
+                Object fromServer=inFromServer.readObject();
+                if (fromServer instanceof String s) {
+                    if (s.equals("CATEGORY")) {
+                        categoryList= (List<String>) inFromServer.readObject();
+                     //   categoryList.add(readerBuff.readLine());
+                        createCategoryPanel(categoryList);
+                    }
+                    if (s.equals("QUESTIONS")) {
+                        if (fromServer instanceof QuestionsAndAnswers qna) {
+                            questionsList=(List <QuestionsAndAnswers>)inFromServer.readObject();
+                            //questionGUI, tar in list av questionsandanswers som inparameter
+                            //Hur ska vi föra dessa in i GUI??
+                            //kommer detta funka? Fråga Sigrun?
+                        }
+                    }
+            }
+            }
 
         } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
 
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(GameGUI::createAndShowGUI);
+    }
 
-  public static void main(String[] args) {
+    private static void createAndShowGUI() {
+        JFrame frame = new JFrame("Game Interface");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 400);
+        frame.setLayout(new BorderLayout());
 
-      // Skapa huvudfönstret
-      frame = new JFrame("Game Interface");
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      frame.setSize(300, 400);
-      frame.setLayout(new BorderLayout());
-
-
-        // Huvudpanelen
-        mainPanel = createMainPanel();
-
-        // Kategoripanelen
-        categoryPanel = createCategoryPanel();
-
-        // Frågepanelen
-        questionPanel = createQuestionPanel();
-
-        // Lägg till huvudpanelen till fönstret
-        frame.add(mainPanel, BorderLayout.CENTER);
-
-        // Visa huvudfönstret
         frame.setVisible(true);
     }
 
+
+    public void sendCategorySelection(ObjectOutputStream outputStream, String selectedCategory) throws IOException {
+        outputStream.writeObject(selectedCategory); // Skicka kategori som sträng
+        outputStream.flush();
+    }
+
+    public List<QuestionsAndAnswers> receiveQuestionsFromServer(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+        return (List<QuestionsAndAnswers>) inputStream.readObject(); // Avserialiserar frågelistan
+    }
+
+
+    // Skapa kategoripanelen
+    private static JPanel createCategoryPanel(List <String> categoryList) {
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
+        panel.add(categoryLabel, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
+
+        
+        JButton sportButton = new JButton(categoryList.get(0));
+        JButton anatomyButton = new JButton(categoryList.get(1));
+        JButton geoButton = new JButton(categoryList.get(2));
+        JButton historyButton = new JButton(categoryList.get(3));
+
+
+        buttonPanel.add(sportButton);
+        buttonPanel.add(geoButton);
+        buttonPanel.add(anatomyButton);
+        buttonPanel.add(historyButton);
+
+        panel.add(buttonPanel, BorderLayout.CENTER);
+        return panel;
+    }
     // Skapa huvudpanelen med spel- och poänginformation (inklusive cirklarna)
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -136,6 +186,73 @@ public class GameGUI extends Thread implements Serializable {
         return panel;
     }
 
+    // Skapa frågepanelen
+    private static JPanel createQuestionPanel(List <QuestionsAndAnswers> questions) {
+        JPanel panel = new JPanel(new BorderLayout());
+        questionLabel = new JLabel("", SwingConstants.CENTER);
+        panel.add(questionLabel, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        answerButton1 = new JButton();
+        answerButton2 = new JButton();
+        answerButton3 = new JButton();
+        answerButton4 = new JButton();
+
+        ActionListener answerButtonListener = e -> {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < totalQuestions) {
+               // loadQuestion();
+            } else {
+                handleEndOfRound();
+            }
+        };
+
+        buttonPanel.add(answerButton1);
+        buttonPanel.add(answerButton2);
+        buttonPanel.add(answerButton3);
+        buttonPanel.add(answerButton4);
+
+        answerButton1.addActionListener(answerButtonListener);
+        answerButton2.addActionListener(answerButtonListener);
+        answerButton3.addActionListener(answerButtonListener);
+        answerButton4.addActionListener(answerButtonListener);
+
+        panel.add(buttonPanel, BorderLayout.CENTER);
+        return panel;
+    }
+
+    // Ladda aktuell fråga
+    //kommer det gå att ha denna metod för att ladda in frågorna?
+    //De kommer sparas i varsin List <QuestionsAndAnswers>
+   /*
+    private static void loadQuestion() {
+        QuestionsAndAnswers currentQuestion =
+
+        questionLabel.setText(currentQuestion.getQuestion());
+        answerButton1.setText(currentQuestion.getCorrectAnswer());
+        answerButton2.setText(currentQuestion.getAnswer2());
+        answerButton3.setText(currentQuestion.getAnswer3());
+        answerButton4.setText(currentQuestion.getAnswer4());
+    }
+*/
+
+
+    // Hantera slutet av en runda
+    private static void handleEndOfRound() {
+        JOptionPane.showMessageDialog(frame, "Runda " + currentRound + " är över!");
+        currentQuestionIndex = 0;
+        currentRound++;
+        if (currentRound <= totalRounds) {
+            frame.remove(questionPanel);
+            frame.add(categoryPanel, BorderLayout.CENTER);
+        } else{
+            JOptionPane.showMessageDialog(frame, "Spelet är över! Tack för att du spelade!");
+            frame.remove(questionPanel);
+            frame.add(mainPanel, BorderLayout.CENTER);
+        }
+        frame.revalidate();
+        frame.repaint();
+    }
     // Skapa cirkelpanelen för poängvisning
     private static JPanel getCirclesPanel() {
         JPanel circlesPanel = new JPanel(new GridLayout(2, 2));
@@ -175,133 +292,5 @@ public class GameGUI extends Thread implements Serializable {
         circlesPanel.add(player2CirclesPanel2);
 
         return circlesPanel;
-    }
-
-    // Skapa kategoripanelen
-    private static JPanel createCategoryPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel categoryLabel = new JLabel("Välj Kategori", SwingConstants.CENTER);
-        panel.add(categoryLabel, BorderLayout.NORTH);
-
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
-        JButton sportButton = new JButton("Sport");
-        JButton geoButton = new JButton("Geografi");
-        JButton anatomyButton = new JButton("Anatomy");
-
-
-        ActionListener categoryButtonListener = e -> {
-            String chosenCategory="";
-            if (e.getSource()==sportButton){
-                chosenCategory="Sport";
-            } else if (e.getSource()==geoButton) {
-                chosenCategory="Geografi";
-            } else if (e.getSource()==anatomyButton) {
-                chosenCategory="Anatomy";
-            }
-            setDatabase(chosenCategory);
-
-            frame.remove(categoryPanel);
-            frame.add(questionPanel, BorderLayout.CENTER);
-            loadQuestion();
-            frame.revalidate();
-            frame.repaint();
-        };
-
-        sportButton.addActionListener(categoryButtonListener);
-        geoButton.addActionListener(categoryButtonListener);
-        anatomyButton.addActionListener(categoryButtonListener);
-
-        buttonPanel.add(sportButton);
-        buttonPanel.add(geoButton);
-        buttonPanel.add(anatomyButton);
-
-        panel.add(buttonPanel, BorderLayout.CENTER);
-        return panel;
-    }
-    //skapande av kategorival
-    public static void setDatabase(String category) {
-        String pathToSport = "src/Questions/textfiles/SportQuestions";
-        String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-        String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-        switch (category) {
-            case "Sport":
-                new DAO("src/Questions/textfiles/SportQuestions");
-                break;
-            case "Geografi":
-                 new DAO("src/Questions/textfiles/GeoQuestions");
-                break;
-            case "Anatomy":
-                 new DAO("src/Questions/textfiles/AnatomyQuestions");
-                break;
-            default:
-                System.out.println("Ogiltig kategori");
-                return;
-        }
-    }
-
-    // Skapa frågepanelen
-    private static JPanel createQuestionPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        questionLabel = new JLabel("", SwingConstants.CENTER);
-        panel.add(questionLabel, BorderLayout.NORTH);
-
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        answerButton1 = new JButton();
-        answerButton2 = new JButton();
-        answerButton3 = new JButton();
-        answerButton4 = new JButton();
-
-        ActionListener answerButtonListener = e -> {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < totalQuestions) {
-                loadQuestion();
-            } else {
-                handleEndOfRound();
-            }
-        };
-
-        buttonPanel.add(answerButton1);
-        buttonPanel.add(answerButton2);
-        buttonPanel.add(answerButton3);
-        buttonPanel.add(answerButton4);
-
-        answerButton1.addActionListener(answerButtonListener);
-        answerButton2.addActionListener(answerButtonListener);
-        answerButton3.addActionListener(answerButtonListener);
-        answerButton4.addActionListener(answerButtonListener);
-
-        panel.add(buttonPanel, BorderLayout.CENTER);
-        return panel;
-    }
-
-    // Ladda aktuell fråga
-    private static void loadQuestion() {
-
-        QuestionsAndAnswers currentQuestion = database.getNextQuestion();
-
-        questionLabel.setText(currentQuestion.getQuestion());
-        answerButton1.setText(currentQuestion.getCorrectAnswer());
-        answerButton2.setText(currentQuestion.getAnswer2());
-        answerButton3.setText(currentQuestion.getAnswer3());
-        answerButton4.setText(currentQuestion.getAnswer4());
-    }
-
-
-
-    // Hantera slutet av en runda
-    private static void handleEndOfRound() {
-        JOptionPane.showMessageDialog(frame, "Runda " + currentRound + " är över!");
-        currentQuestionIndex = 0;
-        currentRound++;
-        if (currentRound <= totalRounds) {
-            frame.remove(questionPanel);
-            frame.add(categoryPanel, BorderLayout.CENTER);
-        } else{
-            JOptionPane.showMessageDialog(frame, "Spelet är över! Tack för att du spelade!");
-            frame.remove(questionPanel);
-            frame.add(mainPanel, BorderLayout.CENTER);
-        }
-        frame.revalidate();
-        frame.repaint();
     }
 }
