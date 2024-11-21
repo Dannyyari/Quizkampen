@@ -10,11 +10,11 @@ public class ServerListner {
         try (ServerSocket serverSocket = new ServerSocket(port);) {
             System.out.println("QUIZKAMPEN");
             System.out.println();
-            while (!serverSocket.isClosed()){
-                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), "Emil");
+            while (true){
+                ServerSidePlayer player1= new ServerSidePlayer(serverSocket.accept(), "Spelare 1");
                 System.out.println("en spelare ansluten");
 
-                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), "Emil");
+                ServerSidePlayer player2= new ServerSidePlayer(serverSocket.accept(), "Spelare 2");
                 System.out.println("två spelare anslutna, nu kör vi!");
                 Server server= new Server(player1,player2);
 

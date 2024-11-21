@@ -44,23 +44,20 @@ public class GameGUI extends Thread implements Serializable {
     // Totalt antal rundor (baserat på vad som står i properties)
 
     public GameGUI() throws IOException, ClassNotFoundException {
-
+        System.out.println("in constructor");
          Socket clientSocket = new Socket(iadr, port);
+        System.out.println("socket ready");
             outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
             inFromServer = new ObjectInputStream(clientSocket.getInputStream());
             readerBuff =new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.start();
 
     }
-//                Object o = ((List) fromServer).get(0);
-//                if (o instanceof QuestionsAndAnswers listan){
-//                    //gör en cast på hela listan, safe för du vet typen
-//                    anatomyQnA.add(listan);
-//                }
-@Override
+
     public void run(){
         try {
             while (true){
+                System.out.println("client in run loop");
                 Object fromServer=inFromServer.readObject();
                 if (fromServer instanceof String s) {
                     if (s.equals("CATEGORY")) {
@@ -88,8 +85,13 @@ public class GameGUI extends Thread implements Serializable {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(GameGUI::createAndShowGUI);
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        System.out.println("in main");
+        GameGUI g = new GameGUI();
+        System.out.println("last in man");
+        //new GameGUI().start();
+
+     //   SwingUtilities.invokeLater(GameGUI::createAndShowGUI);
     }
 
     private static void createAndShowGUI() {

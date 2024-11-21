@@ -48,6 +48,7 @@ public class Server extends Thread implements Serializable{
                 toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getSock().getOutputStream());
                 fromPlayerOne = new ObjectInputStream(playerOneSocket.getSock().getInputStream());
                 fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getSock().getInputStream());
+                System.out.println("binding streams done");
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -62,7 +63,8 @@ public class Server extends Thread implements Serializable{
         //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
         try {
             while (true) {
-                for (int round = 1; round <= settings.getRounds() ; round++) {
+                System.out.println("in server loop");
+                for (int round = 1; round <= totalRounds ; round++) {
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts){
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo,fromPlayerTwo);
@@ -126,7 +128,7 @@ public class Server extends Thread implements Serializable{
 
         int correctAnswers = 0;
 
-        for (int i = 0; i < settings.getQuestions(); i++) {
+        for (int i = 0; i < totalQuestions; i++) {
             QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
             outToPlayer.writeObject(question.getQuestion()); // Skicka frågan till spelaren
             outToPlayer.flush();
@@ -147,7 +149,7 @@ public class Server extends Thread implements Serializable{
 
         // Skicka resultatet till spelaren
         outToPlayer.writeObject("RESULT");
-        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + settings.getQuestions());
+        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + totalQuestions);
         outToPlayer.flush();
     }
 
