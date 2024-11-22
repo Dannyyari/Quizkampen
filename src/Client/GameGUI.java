@@ -22,7 +22,6 @@ public class GameGUI {
     private List<String> categoryList;
     private List<QuestionsAndAnswers> questionsList;
     private int currentQuestionIndex;
-    private int score;
 
     public GameGUI(String playerName) {
         this.playerName = playerName;
@@ -87,80 +86,15 @@ public class GameGUI {
         return panel;
     }
 
-    private void updateCategoryButtons(List<String> categories) {
-        JPanel categoryPanel = (JPanel) mainContainer.getComponent(0); // Kategoripanelen
-        JPanel buttonPanel = (JPanel) categoryPanel.getComponent(1); // Knappanelen
-
-        Component[] buttons = buttonPanel.getComponents();
-        if (categories.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "Inga kategorier tillgängliga. Vänta på servern.", "Fel", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        for (int i = 0; i < buttons.length; i++) {
-            if (buttons[i] instanceof JButton button) {
-                button.setText(categories.get(i));
-                button.setEnabled(true);
-
-            }
-        }
-        buttonPanel.revalidate();
-        buttonPanel.repaint();
-        System.out.println("Kategoriknappar uppdaterade: " + categories);
-    }
-
-    private void startNetworkThread() {
-        new Thread(() -> {
-            try {
-                while (true) {
-                    Object fromServer = inFromServer.readObject();
-
-                    if (fromServer instanceof String message) {
-                        switch (message) {
-                            case "CATEGORY" -> {
-                                categoryList = (List<String>) inFromServer.readObject();
-                                System.out.println(playerName + " mottog kategorier: " + categoryList);
-                                updateCategoryButtons(categoryList);
-                                cardLayout.show(mainContainer, "Category");
-                            }
-                            case "INFO" -> {
-                                String info = (String) inFromServer.readObject();
-                                JOptionPane.showMessageDialog(frame, info, "Info", JOptionPane.INFORMATION_MESSAGE);
-                            }
-                            case "QUESTIONS" -> {
-                                questionsList = (List<QuestionsAndAnswers>) inFromServer.readObject();
-                                currentQuestionIndex = 0;
-                                loadQuestion(questionsList.get(currentQuestionIndex));
-                                cardLayout.show(mainContainer, "Question");
-                            }
-                            case "ROUND_RESULT" -> {
-                                String result = (String) inFromServer.readObject();
-                                JOptionPane.showMessageDialog(frame, result);
-                            }
-                            case "FINAL_RESULT" -> {
-                                String finalResult = (String) inFromServer.readObject();
-                                JOptionPane.showMessageDialog(frame, finalResult);
-                                frame.dispose();
-                            }
-                        }
-                    }
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "Anslutningen till servern bröts.", "Fel", JOptionPane.ERROR_MESSAGE);
-                frame.dispose();
-            }
-        }).start();
-    }
-
     private JPanel createQuestionPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 18));
         panel.add(questionLabel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
             button.addActionListener(e -> {
@@ -180,9 +114,54 @@ public class GameGUI {
             buttonPanel.add(button);
         }
         panel.add(buttonPanel, BorderLayout.CENTER);
-        panel.revalidate();
-        panel.repaint();
         return panel;
+    }
+
+    private void resetGUI () {
+        JPanel categoryPanel = (JPanel) mainContainer.getComponent(0);
+        JPanel buttonPanel = (JPanel) categoryPanel.getComponent(1);
+        for (Component button : buttonPanel.getComponents()) {
+            if (button instanceof JButton btn) {
+                btn.setText("");
+                btn.setEnabled(false);
+            }
+        }
+
+        JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
+        JPanel questionButtonPanel = (JPanel) questionPanel.getComponent(1);
+        for (Component button : questionButtonPanel.getComponents()) {
+            if (button instanceof JButton btn) {
+                btn.setText("");
+                btn.setEnabled(false);
+            }
+        }
+
+    }
+
+    private void updateCategoryButtons(List<String> categories) {
+        JPanel categoryPanel = (JPanel) mainContainer.getComponent(0);
+        JPanel buttonPanel = (JPanel) categoryPanel.getComponent(1);
+
+        Component[] buttons = buttonPanel.getComponents();
+        if (categories.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Inga kategorier är tillgängliga.. Vänta på servern", "Fel", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        for (int i = 0; i<buttons.length; i++) {
+            if (buttons[i] instanceof JButton button) {
+                if(i < categories.size()) {
+                button.setText(categories.get(i));
+                button.setEnabled(true);
+                } else{
+                    button.setText("");
+                    button.setEnabled(false);
+                }
+            }
+        }
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
+        System.out.println("kategoriknapparna är uppdaterade: " + categories);
     }
 
     private void loadQuestion(QuestionsAndAnswers question) {
@@ -206,6 +185,51 @@ public class GameGUI {
             }
         }
     }
+
+
+    private void startNetworkThread() {
+        new Thread(() -> {
+            try {
+                while (true) {
+                    Object fromServer = inFromServer.readObject();
+
+                    if (fromServer instanceof String message) {
+                        switch (message) {
+                            case "YOUR_TURN" -> {
+                                System.out.println(playerName + " har fått turen.");
+                                resetGUI();
+                                String playerTurnInfo = (String) inFromServer.readObject();
+                                JOptionPane.showMessageDialog(frame, "Din tur: " + playerTurnInfo, "Din tur", JOptionPane.INFORMATION_MESSAGE);
+                                cardLayout.show(mainContainer, "Category");
+                            }
+                            case "CATEGORY" -> {
+                                categoryList = (List<String>) inFromServer.readObject();
+                                System.out.println(playerName + " mottog kategorier: " + categoryList);
+                                updateCategoryButtons(categoryList);
+                                cardLayout.show(mainContainer, "Category");
+                            }
+                            case "QUESTIONS" -> {
+                                questionsList = (List<QuestionsAndAnswers>) inFromServer.readObject();
+                                currentQuestionIndex = 0;
+                                loadQuestion(questionsList.get(currentQuestionIndex));
+                                cardLayout.show(mainContainer, "Question");
+                            }
+                            case "FINAL_RESULT" -> {
+                                String finalResult = (String) inFromServer.readObject();
+                                JOptionPane.showMessageDialog(frame, finalResult);
+                                frame.dispose();
+                            }
+                        }
+                    }
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "Anslutningen till servern bröts.", "Fel", JOptionPane.ERROR_MESSAGE);
+                frame.dispose();
+            }
+        }).start();
+    }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
