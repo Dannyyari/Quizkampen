@@ -95,6 +95,10 @@ public class Server extends Thread {
         System.out.println(activePlayer.getName() + " börjar svara...");
         int activeScore = playRound(limitedQuestions, toActive, fromActive);
 
+        toActive.writeObject("WAIT");
+        toActive.writeObject("Din tur är slut. Vänta på nästa runda.");
+        toActive.flush();
+
         // Spela rundan för väntande spelare
         System.out.println(waitingPlayer.getName() + " börjar svara...");
         int waitingScore = playRound(limitedQuestions, toWaiting, fromWaitingPlayer(waitingPlayer));
@@ -102,6 +106,10 @@ public class Server extends Thread {
         // Uppdatera poäng
         activePlayerScores.put(selectedCategory, activeScore);
         waitingPlayerScores.put(selectedCategory, waitingScore);
+
+        toWaiting.writeObject("YOUR_TURN");
+        toWaiting.writeObject("Din tur att välja en kategori.");
+        toWaiting.flush();
 
         // Informera loggen
         System.out.println("Runda slutförd för kategorin: " + selectedCategory);

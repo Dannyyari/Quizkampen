@@ -196,10 +196,9 @@ public class GameGUI {
                     if (fromServer instanceof String message) {
                         switch (message) {
                             case "YOUR_TURN" -> {
-                                System.out.println(playerName + " har fått turen.");
-                                resetGUI();
-                                String playerTurnInfo = (String) inFromServer.readObject();
-                                JOptionPane.showMessageDialog(frame, "Din tur: " + playerTurnInfo, "Din tur", JOptionPane.INFORMATION_MESSAGE);
+                                resetGUI(); // Återställ GUI-komponenterna
+                                String message2 = (String) inFromServer.readObject();
+                                JOptionPane.showMessageDialog(frame, message2, "Din tur", JOptionPane.INFORMATION_MESSAGE);
                                 cardLayout.show(mainContainer, "Category");
                             }
                             case "CATEGORY" -> {
