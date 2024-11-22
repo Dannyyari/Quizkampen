@@ -1,5 +1,7 @@
 package ServerSide;
 
+// Endast så Erik kan hämta.
+
 import java.net.Socket;
 
 public class ServerSidePlayer {
