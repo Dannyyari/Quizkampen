@@ -16,6 +16,11 @@ public class ServerSidePlayer {
         this.opponent=opponent;
     }
 
+    //för att flippa i handleround
+    public String getName() {
+        return name;
+    }
+
     public Socket getSock() {
         return sock;
     }
