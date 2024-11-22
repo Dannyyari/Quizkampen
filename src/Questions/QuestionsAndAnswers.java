@@ -3,26 +3,26 @@ package Questions;
 import java.io.Serializable;
 
 public class QuestionsAndAnswers implements Serializable {
-    private String Question;
-    private String CorrectAnswer;
-    private String answer2;
-    private String answer3;
-    private String answer4;
+    private final String question;
+    private final String correctAnswer;
+    private final String answer2;
+    private final String answer3;
+    private final String answer4;
+
     public QuestionsAndAnswers(String question, String correctAnswer, String answer2, String answer3, String answer4) {
-        Question = question;
-        CorrectAnswer = correctAnswer;
+        this.question = question;
+        this.correctAnswer = correctAnswer;
         this.answer2 = answer2;
         this.answer3 = answer3;
         this.answer4 = answer4;
     }
 
-
     public String getQuestion() {
-        return Question;
+        return question;
     }
 
     public String getCorrectAnswer() {
-        return CorrectAnswer;
+        return correctAnswer;
     }
 
     public String getAnswer2() {
@@ -39,11 +39,6 @@ public class QuestionsAndAnswers implements Serializable {
 
     @Override
     public String toString() {
-        return
-                "Question: " + Question +
-                ", " + CorrectAnswer +
-                ", " + answer2 +
-                ", " + answer3 +
-                ", " + answer4;
+        return "Fråga: " + question + "\nRätt svar: " + correctAnswer;
     }
 }

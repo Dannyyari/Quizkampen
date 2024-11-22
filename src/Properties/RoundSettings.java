@@ -4,23 +4,17 @@ import java.io.*;
 import java.util.Properties;
 
 public class RoundSettings {
-    int rounds;
-    int questions;
+    private int rounds = 2;
+    private int questions = 2;
 
-    public RoundSettings(){
-        Properties prop = new Properties();
-        try(FileInputStream file = new FileInputStream("src/Properties/Properties_prop")) {
-
-            prop.load(file);
-            rounds = Integer.parseInt(prop.getProperty("Rounds", "2"));
-            questions = Integer.parseInt(prop.getProperty("Questions", "2"));
-
-        } catch (FileNotFoundException e) {
-            System.out.println("Hittad ej fil.");
-            throw new RuntimeException(e);
+    public RoundSettings() {
+        Properties properties = new Properties();
+        try (FileInputStream file = new FileInputStream("src/Properties/Properties_prop")) {
+            properties.load(file);
+            rounds = Integer.parseInt(properties.getProperty("Rounds", "2"));
+            questions = Integer.parseInt(properties.getProperty("Questions", "2"));
         } catch (IOException e) {
-            System.out.println("Fel vid inmatning." );
-            throw new RuntimeException(e);
+            System.err.println("Fel vid laddning av inställningar: " + e.getMessage());
         }
     }
 

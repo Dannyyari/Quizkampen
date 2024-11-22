@@ -4,32 +4,29 @@ import javax.swing.*;
 import java.net.ServerSocket;
 
 public class ServerListener {
-    private int port= 55553;
+    private final int port = 55553;
 
     public ServerListener() {
-        try (ServerSocket serverSocket = new ServerSocket(port);) {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Quizkampens server är igång...");
 
-            while (true){
-
+            while (true) {
                 System.out.println("Väntar på spelare...");
-                String nameP1 = JOptionPane.showInputDialog("VAD HETER DU?");
-                ServerSidePlayer player1 = new ServerSidePlayer(serverSocket.accept(), nameP1);
-                System.out.println("En spelare ansluten!");
+                ServerSidePlayer player1 = new ServerSidePlayer(serverSocket.accept(), "Spelare 1");
+                System.out.println(player1.getName() + " ansluten!");
 
-                String nameP2 = JOptionPane.showInputDialog("VAD HETER DU?");
-                ServerSidePlayer player2 = new ServerSidePlayer(serverSocket.accept(), nameP2);
-                System.out.println("Två spelare anslutna, nu kör vi!");
+                ServerSidePlayer player2 = new ServerSidePlayer(serverSocket.accept(), "Spelare 2");
+                System.out.println(player2.getName() + " ansluten!");
 
                 Server server = new Server(player1, player2);
                 server.start();
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-        ServerListener s1 = new ServerListener();
+        new ServerListener();
     }
 }
