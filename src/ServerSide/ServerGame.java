@@ -32,6 +32,7 @@ public class ServerGame extends Thread implements Serializable {
     private final DAO geoQuestions = new DAO("Geo", pathToGeo);
     private final DAO historyQuestions = new DAO("History", pathToHistory);
 
+    private boolean playerTurnScoreCounterCondition= true;
     private boolean playerOneStarts = true;
     static RoundSettings settings = settings = new RoundSettings();
 
@@ -72,12 +73,12 @@ public class ServerGame extends Thread implements Serializable {
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts) {
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo, fromPlayerTwo);
-                        getResault();
+                        getResault(round);
                         //skapa metod som skickar totala resultat för båda spelare
                         playerOneStarts = false;
                     } else {
                         handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
-                        getResault();
+                        getResault(round);
                         playerOneStarts = true;
                     }
                 }
@@ -111,9 +112,11 @@ public class ServerGame extends Thread implements Serializable {
         oos.flush();
     }
 
-    public void getResault() throws IOException {
-        String scoreBoardP1 = "Du fick: " + playerOneScore + " din motståndare fick: " + playerTwoScore;
-        String scoreBoardP2 = "Du fick: " + playerTwoScore + " din motståndare fick: " + playerOneScore;
+    public void getResault(int currentRound) throws IOException {
+        String scoreBoardP1 = "Du fick: " + playerOneScore + " poäng, din motståndare fick: " + playerTwoScore + " poäng " +
+                "på rond " + currentRound + " av " + totalRounds;
+        String scoreBoardP2 = "Du fick: " + playerTwoScore + " din motståndare fick: " + playerOneScore + " poäng "+
+                "på rond " + currentRound + " av " + totalRounds;
         toPlayerOne.writeObject("STATE_POINTSOFROUND");
         toPlayerTwo.writeObject("STATE_POINTSOFROUND");
         //gör en totalint för att skicka samma till båda
@@ -157,7 +160,7 @@ public class ServerGame extends Thread implements Serializable {
         // Skicka resultatet till spelaren
         //ta bort här nere???
         outToPlayer.writeObject("STATE_RESULT");
-        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + totalQuestions);
+        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + totalQuestions + " questions");
         outToPlayer.flush();
     }
 
@@ -182,10 +185,10 @@ public class ServerGame extends Thread implements Serializable {
 
         //göra om detta så att raderna under skiftar, vi vill inte alltid lagra playerOneScore i den första.
 
-        boolean isChooserPlayerOne = playerOneStarts;
+        boolean isChooserPlayerOne = playerTurnScoreCounterCondition;
         // Spelaren som valde svarar först
         handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, isChooserPlayerOne);
-
+        isChooserPlayerOne=false;
         // Andra spelaren svarar på samma frågor
         handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, isChooserPlayerOne);
 

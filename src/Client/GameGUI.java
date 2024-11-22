@@ -99,12 +99,14 @@ public class GameGUI extends Thread implements Serializable {
                             System.out.println("Poäng från server: " + point);
                     }
                     if (state.equals("CORRECT")) {
-                        score++;
-                        System.out.println("du har svarat rätt");
+                        score++;;
+                        System.out.println("du har svarat rätt, aktuell POÄNG::: " + score);
                     }
 
                     }
                     if (state.equals("STATE_POINTSOFROUND")){
+                        //kan ta state som en string och spara den som en sträng roundPintState. Då tar ponintGUI emot kanske en sträng bara
+                        //Vi skickar iväg en sträng
                         System.out.println(state);
                     }
                 }
