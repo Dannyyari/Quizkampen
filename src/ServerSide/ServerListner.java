@@ -29,6 +29,7 @@ public class ServerListner {
     }
 
     public static void main(String[] args) {
-        ServerListner s1=new ServerListner();
+
+        new ServerListner();
     }
 }

@@ -100,9 +100,9 @@ public class GameGUI extends Thread implements Serializable {
         System.out.println("in main");
         GameGUI g = new GameGUI();
         System.out.println("last in man");
-        //new GameGUI().start();
+        // new GameGUI().start();
 
-     //   SwingUtilities.invokeLater(GameGUI::createAndShowGUI);
+       // SwingUtilities.invokeLater(GameGUI::createAndShowGUI);
     }
 
     private static void createAndShowGUI() {
@@ -123,7 +123,7 @@ public class GameGUI extends Thread implements Serializable {
     public List<QuestionsAndAnswers> receiveQuestionsFromServer(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
         return (List<QuestionsAndAnswers>) inputStream.readObject(); // Avserialiserar frågelistan
     }
-
+    
 
     //FRÅGA SIGRUN, kan panelerna skicka ut svar?
     // Skapa kategoripanelen
@@ -183,7 +183,7 @@ public class GameGUI extends Thread implements Serializable {
 
         // Mittenpanel med cirklar
         JPanel middlePanel = new JPanel(new BorderLayout());
-        middlePanel.add(circlesPanel, BorderLayout.CENTER);
+        //middlePanel.add(circlesPanel, BorderLayout.CENTER);
 
         // Bottenpanel med "Spela"-knappen
         JPanel bottomPanel = new JPanel();

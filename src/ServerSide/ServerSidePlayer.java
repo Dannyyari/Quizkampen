@@ -13,14 +13,21 @@ public class ServerSidePlayer {
     }
 
     public void setOpponent(ServerSidePlayer opponent){
+
         this.opponent=opponent;
     }
 
     public Socket getSock() {
+
         return sock;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public ServerSidePlayer getOpponent() {
+
         return opponent;
     }
 }

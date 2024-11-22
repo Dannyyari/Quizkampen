@@ -68,7 +68,7 @@ public class Server extends Thread implements Serializable{
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts){
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo,fromPlayerTwo);
-                        showresault(toPlayerOne, toPlayerTwo);
+                        //showresault(toPlayerOne, toPlayerTwo);
                         playerOneStarts=false;
                     } else {
                     handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
