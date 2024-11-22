@@ -32,7 +32,6 @@ public class ServerGame extends Thread implements Serializable {
     private final DAO geoQuestions = new DAO("Geo", pathToGeo);
     private final DAO historyQuestions = new DAO("History", pathToHistory);
 
-    private boolean playerTurnScoreCounterCondition= true;
     private boolean playerOneStarts = true;
     static RoundSettings settings = settings = new RoundSettings();
 
@@ -73,14 +72,13 @@ public class ServerGame extends Thread implements Serializable {
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts) {
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo, fromPlayerTwo);
-                        getResault(round);
                         //skapa metod som skickar totala resultat för båda spelare
                         playerOneStarts = false;
                     } else {
                         handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
-                        getResault(round);
                         playerOneStarts = true;
                     }
+                    getResault(round);
                 }
                 break;
             }
@@ -185,13 +183,16 @@ public class ServerGame extends Thread implements Serializable {
 
         //göra om detta så att raderna under skiftar, vi vill inte alltid lagra playerOneScore i den första.
 
-        boolean isChooserPlayerOne = playerTurnScoreCounterCondition;
-        // Spelaren som valde svarar först
-        handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, isChooserPlayerOne);
-        isChooserPlayerOne=false;
-        // Andra spelaren svarar på samma frågor
-        handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, isChooserPlayerOne);
-
+        if (playerOneStarts) {
+            // Spelaren som valde svarar först
+            handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, true);
+            // Andra spelaren svarar på samma frågor
+            handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, false);
+        }else {
+            handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, false);
+            // Andra spelaren svarar på samma frågor
+            handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);
+        }
     }
     public boolean checkCategoryAnswer(String categoryFromUSer) {
         List<String> validCategories = List.of("Sport", "Geo", "Anatomy", "History");
