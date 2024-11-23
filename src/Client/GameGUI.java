@@ -62,6 +62,9 @@ public class GameGUI {
         frame.setVisible(true);
     }
 
+
+
+
     private JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel label = new JLabel("Välj en kategori", SwingConstants.CENTER);
@@ -72,42 +75,13 @@ public class GameGUI {
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
-            button.setEnabled(false);
+            button.setEnabled(true); //ska den vara false eller true
             button.addActionListener(e -> {
                 try {
-                    outToServer.writeObject(button.getText());
+                    String buttontext=button.getText();
+                    outToServer.writeObject(buttontext);
                     outToServer.flush();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            });
-            buttonPanel.add(button);
-        }
-        panel.add(buttonPanel, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel createQuestionPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        panel.add(questionLabel, BorderLayout.NORTH);
-
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
-
-        for (int i = 0; i < 4; i++) {
-            JButton button = new JButton();
-            button.addActionListener(e -> {
-                try {
-                    outToServer.writeObject(button.getText());
-                    outToServer.flush();
-                    currentQuestionIndex++;
-                    if (currentQuestionIndex < questionsList.size()) {
-                        loadQuestion(questionsList.get(currentQuestionIndex));
-                    } else {
-                        cardLayout.show(mainContainer, "Waiting");
-                    }
+                    System.out.println("försöker trycka på knapp");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -137,7 +111,37 @@ public class GameGUI {
         buttonPanel.revalidate();
         buttonPanel.repaint();
     }
+    private JPanel createQuestionPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        panel.add(questionLabel, BorderLayout.NORTH);
 
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+        for (int i = 0; i < 4; i++) {
+            JButton button = new JButton();
+            button.addActionListener(e -> {
+                try {
+                    outToServer.writeObject(button.getText());
+                    outToServer.flush();
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex <= questionsList.size()) {
+                        loadQuestion(questionsList.get(currentQuestionIndex));
+                    } else {
+                        cardLayout.show(mainContainer, "Category");
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            });
+            buttonPanel.add(button);
+        }
+        panel.add(buttonPanel, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
+        return panel;
+    }
     private void loadQuestion(QuestionsAndAnswers question) {
         JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
         JLabel questionLabel = (JLabel) questionPanel.getComponent(0);
@@ -211,19 +215,20 @@ public class GameGUI {
                                 cardLayout.show(mainContainer, "Category");
                             }
                             case "STATE_QUESTIONS" -> {
-                                questionsList = (List<QuestionsAndAnswers>) inFromServer.readObject();
-                                currentQuestionIndex = 0;
-                                loadQuestion(questionsList.get(currentQuestionIndex));
+                                QuestionsAndAnswers question= (QuestionsAndAnswers) inFromServer.readObject();
+                          //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
+                                loadQuestion(question);
                                 cardLayout.show(mainContainer, "Question");
                             }
                             case "STATE_POINTSOFROUND" -> {
                                 String resultMessage = (String) inFromServer.readObject();
                                 JOptionPane.showMessageDialog(frame, resultMessage, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
                             }
-                            case "STATE_FINAL_RESULT" -> {
+                            case "STATE_RESULT" -> {
                                 String finalResult = (String) inFromServer.readObject();
-                                frame.getContentPane().add(createResultPanel("Du", 0, "Motståndare", 0), "Result");
-                                cardLayout.show(mainContainer, "Result");
+                                JOptionPane.showMessageDialog(frame, finalResult, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
+                                //frame.getContentPane().add(createResultPanel("Du", 0, "Motståndare", 0), "Result");
+                                //cardLayout.show(mainContainer, "Result");
                             }
                         }
                     }
