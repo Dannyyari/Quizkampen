@@ -1,44 +1,40 @@
 package Questions;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DAO implements Serializable {
-    List<QuestionsAndAnswers> QuestionsAndAnswers =new ArrayList<>();
-    private String path;
-    private String category;
+public class DAO {
+    private final List<QuestionsAndAnswers> questionsAndAnswers = new ArrayList<>();
+    private final String category;
 
-
-    public DAO(String category, String path){
-        this.category=category;
-        this.path=path;
-        loader();
+    public DAO(String category, String path) {
+        this.category = category;
+        loadQuestions(path);
     }
 
-    private void loader(){
-        try (BufferedReader reader=new BufferedReader(new FileReader(path))){
-            String temp;
-            while ((temp=reader.readLine())!=null){
-                String[] strArray=temp.split(", ");
-                QuestionsAndAnswers.add(new QuestionsAndAnswers(strArray[0], strArray[1], strArray[2], strArray[3], strArray[4] ));
+    private void loadQuestions(String path) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(", ");
+                if (parts.length == 5) {
+                    questionsAndAnswers.add(new QuestionsAndAnswers(parts[0], parts[1], parts[2], parts[3], parts[4]));
+                } else {
+                    System.err.println("Ogiltigt format: " + line);
+                }
             }
-
-        }catch (IOException e){
-            e.printStackTrace();
+        } catch (IOException e) {
+            System.err.println("Fel vid laddning av frågor: " + e.getMessage());
         }
     }
 
-    //Så vi kan skicka kategori namn till klient
     public String getCategory() {
         return category;
     }
 
     public List<QuestionsAndAnswers> getQuestionsAndAnswers() {
-        return QuestionsAndAnswers;
+        return Collections.unmodifiableList(questionsAndAnswers);
     }
 }

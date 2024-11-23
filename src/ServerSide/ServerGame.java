@@ -20,6 +20,8 @@ public class ServerGame extends Thread implements Serializable {
     private final ObjectInputStream fromPlayerOne;
     private final ObjectInputStream fromPlayerTwo;
 
+    private List<QuestionsAndAnswers> questions;
+    private final int currentQuestionIndex = 0;
     private final String pathToSport = "src/Questions/textfiles/SportQuestions";
     private final String pathToGeo = "src/Questions/textfiles/GeoQuestions";
     private final String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
@@ -102,6 +104,7 @@ public class ServerGame extends Thread implements Serializable {
         for (DAO dao : DAOS) {
             categories.add(dao.getCategory());
         }
+
         oos.writeObject("STATE_CATEGORY");
         oos.writeObject(categories);
         oos.flush();
@@ -182,15 +185,11 @@ public class ServerGame extends Thread implements Serializable {
 
         if (playerOneStarts) {
             // Spelaren som valde svarar först
-           // chooserOut.writeObject("YOUR_TURN");
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, true);
             // Andra spelaren svarar på samma frågor
-       //     otherPlayerOut.writeObject("YOUR TURN");
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, false);
         }else {
-          //  chooserOut.writeObject("YOUR_TURN");
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, false);
-           // otherPlayerOut.writeObject("YOUR TURN");
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);
         }
@@ -209,5 +208,15 @@ public class ServerGame extends Thread implements Serializable {
 
         }
         return null;
+
     }
+
+
+    //KANSKE
+    //SCOREBOARD
+    //ha en metod som skickar svar till både (chooserOutoch, otherPlayerOut)
+    //har samlat poäng för aktuell runda.
+    //Detta blir då total poäng.
+    //Spelarens egna poäng som personen alltid ska kunna se finns i klient
+
 }
