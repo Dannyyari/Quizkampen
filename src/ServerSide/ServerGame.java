@@ -125,7 +125,6 @@ public class ServerGame extends Thread implements Serializable {
         toPlayerOne.writeObject(scoreBoardP1);
         toPlayerTwo.writeObject(scoreBoardP2);
 
-
         toPlayerOne.flush();
         toPlayerTwo.flush();
     }
@@ -139,7 +138,7 @@ public class ServerGame extends Thread implements Serializable {
             outToPlayer.flush();
 
             QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
-            outToPlayer.writeObject(question); // Skicka frågan till spelaren
+            outToPlayer.writeObject(question);// Skicka frågan till spelaren
             outToPlayer.flush();
 
             String playerAnswer = (String) inFromPlayer.readObject(); // Ta emot spelarens svar
@@ -160,8 +159,6 @@ public class ServerGame extends Thread implements Serializable {
         } else {
                 playerTwoScore += correctAnswers;
         }
-
-
 
         // Skicka resultatet till spelaren
         //ta bort här nere???
