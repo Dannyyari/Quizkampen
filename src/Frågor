@@ -24,7 +24,7 @@ Steg 1= skicka <QuestionsAndAnswers> fast bara kategori  till anävändare 1,
 STATE==CATEGORY_CHOSEN:
 Steg 1.1= användaren klickar i sitt GUI och retunerar sträng
 STATE==GET_QUESTIONS:
-Steg 1.2= Server ser texten och genom instance of String chosen catagory så kollar vi vad användaren skickat.
+Steg 1.2= ServerGame ser texten och genom instance of String chosen catagory så kollar vi vad användaren skickat.
 Steg 1.3= skickar frågor via sendQuestionsToClient via server som tas emot av klient och visar på GUI getQuestionPanel
 STATE==GET_ANSWER:
 steg 1.4= Användaren skickar tillbaka vald fråga (oklart om det ska vara sträng eller QuestionsAndAnswers).
@@ -34,5 +34,5 @@ STATE==FINISH
 spelare 2
 Steg 2= skicka <QuestionsAndAnswers> fast bara kategori  till anävändare 1,
 Steg 2.1= användaren klickar i sitt GUI och retunerar sträng
-Steg 2.2= Server ser texten och genom instance of String chosen catagory så kollar vi vad användaren skickat.
+Steg 2.2= ServerGame ser texten och genom instance of String chosen catagory så kollar vi vad användaren skickat.
 Steg 2.3= skickar frågor via sendQuestionsToClient via server som tas emot av klient och visar på GUI getQuestionPanel

@@ -1,2 +1,18 @@
 Steg 1 koppla upp 2 spelare
-Steg 2: spelare 1 väljer kategori
+Steg 2: spelare 1 väljer kategori via en GUI. (knappar kommer från en <String> listOfCatagory)
+Steg 3: Vid vald kategori ska en sträng med kategori skickas till server
+Steg 4: ServerGame tar ut frågor från val kategori och skickar iväg dessa via en List <QuestionsAndAnswers>
+Steg 5: Klienten tar emot dessa och placerar ut på ett GUI där 0 är frågan och 1-4 är knapparna
+Steg 6: Vid vald knapp skickar klienten en STRÄNG tillbaka till server för att se om du svarat rätt
+
+SKA POÄNG HANTERAS PÅ KLIENTSIDA
+
+Steg 7:
+Steg 8:
+Steg 9:
+Steg 10:
+
+
+
+Fixa så att kategori syns på nästa spelare!!
+Fixa så att STATE_RESULT funkar

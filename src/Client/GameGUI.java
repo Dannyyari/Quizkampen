@@ -38,7 +38,7 @@ public class GameGUI {
 
     private void initializeNetwork() throws IOException {
         InetAddress serverAddress = InetAddress.getLoopbackAddress();
-        int port = 55553;
+        int port = 55555;
 
         clientSocket = new Socket(serverAddress, port);
         outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -56,10 +56,14 @@ public class GameGUI {
 
         mainContainer.add(createCategoryPanel(), "Category");
         mainContainer.add(createQuestionPanel(), "Question");
+        mainContainer.add(new JPanel(), "Waiting"); // Placeholder för vänteläge
 
         frame.add(mainContainer);
         frame.setVisible(true);
     }
+
+
+
 
     private JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -71,11 +75,13 @@ public class GameGUI {
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
-            button.setEnabled(false);
+            button.setEnabled(true); //ska den vara false eller true
             button.addActionListener(e -> {
                 try {
-                    outToServer.writeObject(button.getText());
+                    String buttontext=button.getText();
+                    outToServer.writeObject(buttontext);
                     outToServer.flush();
+                    System.out.println("försöker trycka på knapp");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -86,15 +92,33 @@ public class GameGUI {
         return panel;
     }
 
+    private void updateCategoryButtons(List<String> categories) {
+        JPanel categoryPanel = (JPanel) mainContainer.getComponent(0);
+        JPanel buttonPanel = (JPanel) categoryPanel.getComponent(1);
+
+        Component[] buttons = buttonPanel.getComponents();
+        for (int i = 0; i < buttons.length; i++) {
+            if (buttons[i] instanceof JButton button) {
+                if (i < categories.size()) {
+                    button.setText(categories.get(i));
+                    button.setEnabled(true);
+                } else {
+                    button.setText("");
+                    button.setEnabled(false);
+                }
+            }
+        }
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
+    }
     private JPanel createQuestionPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
         panel.add(questionLabel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
-
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
             button.addActionListener(e -> {
@@ -102,7 +126,7 @@ public class GameGUI {
                     outToServer.writeObject(button.getText());
                     outToServer.flush();
                     currentQuestionIndex++;
-                    if (currentQuestionIndex < questionsList.size()) {
+                    if (currentQuestionIndex <= questionsList.size()) {
                         loadQuestion(questionsList.get(currentQuestionIndex));
                     } else {
                         cardLayout.show(mainContainer, "Category");
@@ -114,56 +138,10 @@ public class GameGUI {
             buttonPanel.add(button);
         }
         panel.add(buttonPanel, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
         return panel;
     }
-
-    private void resetGUI () {
-        JPanel categoryPanel = (JPanel) mainContainer.getComponent(0);
-        JPanel buttonPanel = (JPanel) categoryPanel.getComponent(1);
-        for (Component button : buttonPanel.getComponents()) {
-            if (button instanceof JButton btn) {
-                btn.setText("");
-                btn.setEnabled(false);
-            }
-        }
-
-        JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
-        JPanel questionButtonPanel = (JPanel) questionPanel.getComponent(1);
-        for (Component button : questionButtonPanel.getComponents()) {
-            if (button instanceof JButton btn) {
-                btn.setText("");
-                btn.setEnabled(false);
-            }
-        }
-
-    }
-
-    private void updateCategoryButtons(List<String> categories) {
-        JPanel categoryPanel = (JPanel) mainContainer.getComponent(0);
-        JPanel buttonPanel = (JPanel) categoryPanel.getComponent(1);
-
-        Component[] buttons = buttonPanel.getComponents();
-        if (categories.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "Inga kategorier är tillgängliga.. Vänta på servern", "Fel", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        for (int i = 0; i<buttons.length; i++) {
-            if (buttons[i] instanceof JButton button) {
-                if(i < categories.size()) {
-                button.setText(categories.get(i));
-                button.setEnabled(true);
-                } else{
-                    button.setText("");
-                    button.setEnabled(false);
-                }
-            }
-        }
-        buttonPanel.revalidate();
-        buttonPanel.repaint();
-        System.out.println("kategoriknapparna är uppdaterade: " + categories);
-    }
-
     private void loadQuestion(QuestionsAndAnswers question) {
         JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
         JLabel questionLabel = (JLabel) questionPanel.getComponent(0);
@@ -186,6 +164,42 @@ public class GameGUI {
         }
     }
 
+    private JPanel createResultPanel(String playerName, int playerScore, String opponentName, int opponentScore) {
+        JPanel resultPanel = new JPanel(new BorderLayout());
+        JLabel titleLabel = new JLabel("Resultat", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        resultPanel.add(titleLabel, BorderLayout.NORTH);
+
+        JPanel contentPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+
+        contentPanel.add(new JLabel(playerName + ":", SwingConstants.RIGHT));
+        contentPanel.add(new JLabel(playerScore + " poäng", SwingConstants.LEFT));
+
+        contentPanel.add(new JLabel(opponentName + ":", SwingConstants.RIGHT));
+        contentPanel.add(new JLabel(opponentScore + " poäng", SwingConstants.LEFT));
+
+        JLabel winnerLabel = new JLabel("", SwingConstants.CENTER);
+        winnerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        if (playerScore > opponentScore) {
+            winnerLabel.setText(playerName + " vann!");
+        } else if (playerScore < opponentScore) {
+            winnerLabel.setText(opponentName + " vann!");
+        } else {
+            winnerLabel.setText("Det blev oavgjort!");
+        }
+
+        contentPanel.add(new JLabel("Vinnare:", SwingConstants.RIGHT));
+        contentPanel.add(winnerLabel);
+
+        resultPanel.add(contentPanel, BorderLayout.CENTER);
+
+        JButton closeButton = new JButton("Stäng");
+        closeButton.addActionListener(e -> System.exit(0));
+        resultPanel.add(closeButton, BorderLayout.SOUTH);
+
+        return resultPanel;
+    }
 
     private void startNetworkThread() {
         new Thread(() -> {
@@ -195,28 +209,26 @@ public class GameGUI {
 
                     if (fromServer instanceof String message) {
                         switch (message) {
-                            case "YOUR_TURN" -> {
-                                resetGUI(); // Återställ GUI-komponenterna
-                                String message2 = (String) inFromServer.readObject();
-                                JOptionPane.showMessageDialog(frame, message2, "Din tur", JOptionPane.INFORMATION_MESSAGE);
-                                cardLayout.show(mainContainer, "Category");
-                            }
-                            case "CATEGORY" -> {
+                            case "STATE_CATEGORY" -> {
                                 categoryList = (List<String>) inFromServer.readObject();
-                                System.out.println(playerName + " mottog kategorier: " + categoryList);
                                 updateCategoryButtons(categoryList);
                                 cardLayout.show(mainContainer, "Category");
                             }
-                            case "QUESTIONS" -> {
-                                questionsList = (List<QuestionsAndAnswers>) inFromServer.readObject();
-                                currentQuestionIndex = 0;
-                                loadQuestion(questionsList.get(currentQuestionIndex));
+                            case "STATE_QUESTIONS" -> {
+                                QuestionsAndAnswers question= (QuestionsAndAnswers) inFromServer.readObject();
+                          //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
+                                loadQuestion(question);
                                 cardLayout.show(mainContainer, "Question");
                             }
-                            case "FINAL_RESULT" -> {
+                            case "STATE_POINTSOFROUND" -> {
+                                String resultMessage = (String) inFromServer.readObject();
+                                JOptionPane.showMessageDialog(frame, resultMessage, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
+                            }
+                            case "STATE_RESULT" -> {
                                 String finalResult = (String) inFromServer.readObject();
-                                JOptionPane.showMessageDialog(frame, finalResult);
-                                frame.dispose();
+                                JOptionPane.showMessageDialog(frame, finalResult, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
+                                //frame.getContentPane().add(createResultPanel("Du", 0, "Motståndare", 0), "Result");
+                                //cardLayout.show(mainContainer, "Result");
                             }
                         }
                     }
@@ -228,7 +240,6 @@ public class GameGUI {
             }
         }).start();
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
