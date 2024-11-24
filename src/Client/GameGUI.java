@@ -17,18 +17,6 @@ public class GameGUI {
     private Socket clientSocket;
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
-    private final String pathToSport = "src/Questions/textfiles/SportQuestions";
-    private final String pathToGeo = "src/Questions/textfiles/GeoQuestions";
-    private final String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
-    private final String pathToHistory = "src/Questions/textfiles/HistoryQuestions";
-
-    private final DAO sportQuestions = new DAO("Sport", pathToSport);
-    private final DAO anatomyQuestions = new DAO("Anatomy", pathToAnatomy);
-    private final DAO geoQuestions = new DAO("Geo", pathToGeo);
-    private final DAO historyQuestions = new DAO("History", pathToHistory);
-
-
-
 
 //    JButton b=new JButton();
 //    JButton b=new JButton();
@@ -44,14 +32,7 @@ public class GameGUI {
     private List<String> categoryList;
     private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
 
-    private int currentQuestionIndex;
-
-    private void populateQuestionsList() {
-        questionsList.addAll(sportQuestions.getQuestionsAndAnswers());
-        questionsList.addAll(anatomyQuestions.getQuestionsAndAnswers());
-        questionsList.addAll(geoQuestions.getQuestionsAndAnswers());
-        questionsList.addAll(historyQuestions.getQuestionsAndAnswers());
-    }
+    private QuestionsAndAnswers questionFromServer;
 
     public GameGUI(String playerName) {
         this.playerName = playerName;
@@ -149,40 +130,37 @@ public class GameGUI {
         buttonPanel.repaint();
     }
     private void loadQuestion(QuestionsAndAnswers question) {
+        this.questionFromServer=question;
         JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
         JLabel questionLabel = (JLabel) questionPanel.getComponent(0);
         questionLabel.setText(question.getQuestion());
 
-//        question1.setText(question.getCorrectAnswer());
-//        question2.setText(question.getAnswer2());
-//        question3.setText(question.getAnswer3());
-//        question4.setText(question.getAnswer4());
-//
-//        List <JButton> knappar=new ArrayList<>();
-//        knappar.add(question1);
-//        knappar.add(question2);
-//        knappar.add(question3);
-//        knappar.add(question4);
+
+        List<String> answers = new ArrayList<>();
+        answers.add(question.getCorrectAnswer());
+        answers.add(question.getAnswer2());
+        answers.add(question.getAnswer3());
+        answers.add(question.getAnswer4());
+        Collections.shuffle(answers);
 
         JPanel buttonPanel = (JPanel) questionPanel.getComponent(1);
         Component[] buttons = buttonPanel.getComponents();
-        String[] answers = {
-                question.getCorrectAnswer(),
-                question.getAnswer2(),
-                question.getAnswer3(),
-                question.getAnswer4()
-        };
+//        String[] answers = {
+//                question.getCorrectAnswer(),
+//                question.getAnswer2(),
+//                question.getAnswer3(),
+//                question.getAnswer4()
+//        };
 
         for (int i = 0; i < buttons.length; i++) {
             if (buttons[i] instanceof JButton button) {
-                button.setText(answers[i]);
+                button.setText(answers.get(i));
                 button.setEnabled(true);
             }
         }
     }
     private JPanel createQuestionPanel() {
         List<JButton> buttons = new ArrayList<>();
-        populateQuestionsList();
         JPanel panel = new JPanel(new BorderLayout());
         JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
         questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -198,24 +176,46 @@ public class GameGUI {
                 try {
                     outToServer.writeObject(button.getText());
                     outToServer.flush();
+                    String correctAnswer = questionFromServer.getCorrectAnswer();
+                    boolean isCorrect = correctAnswer.equals(button.getText());
 
-                    boolean isCorrect = questionsList.stream()
-                            .anyMatch(q -> q.getCorrectAnswer().equals(button.getText()));
+                    // Clear previous button colors
+                    buttons.forEach(b -> b.setBackground(UIManager.getColor("Button.background")));
+
+                    // Disable buttons after answering
+                    buttons.forEach(b -> b.setEnabled(false));
 
                     if (isCorrect) {
                         System.out.println("Right answer");
-                        buttons.get(1).setBackground(Color.RED);
-                        buttons.get(2).setBackground(Color.RED);
-                        buttons.get(3).setBackground(Color.RED);
+                        // Color the correct button green
                         button.setBackground(Color.GREEN);
                     } else {
                         System.out.println("Wrong answer");
-                        buttons.get(1).setBackground(Color.RED);
-                        buttons.get(2).setBackground(Color.RED);
-                        buttons.get(3).setBackground(Color.RED);
-                        buttons.get(0).setBackground(Color.GREEN);
+                        // Color the incorrect answer red
+                        buttons.forEach(b -> {
+                            if (b.getText().equals(correctAnswer)) {
+                                b.setBackground(Color.GREEN); // Correct answer button
+                            } else {
+                                b.setBackground(Color.RED); // Wrong answer buttons
+                            }
+                        });
                     }
-                    buttons.forEach(b -> b.setEnabled(false));
+
+
+//                    if (isCorrect) {
+//                        System.out.println("Right answer");
+//                        buttons.get(1).setBackground(Color.RED);
+//                        buttons.get(2).setBackground(Color.RED);
+//                        buttons.get(3).setBackground(Color.RED);
+//                        button.setBackground(Color.GREEN);
+//                    } else {
+//                        System.out.println("Wrong answer");
+//                        buttons.get(1).setBackground(Color.RED);
+//                        buttons.get(2).setBackground(Color.RED);
+//                        buttons.get(3).setBackground(Color.RED);
+//                        buttons.get(0).setBackground(Color.GREEN);
+//                    }
+//                    buttons.forEach(b -> b.setEnabled(false));
 
 
                     Timer timer = new Timer(1000, evt -> {

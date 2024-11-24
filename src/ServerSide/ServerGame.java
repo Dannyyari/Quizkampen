@@ -30,7 +30,7 @@ public class ServerGame extends Thread implements Serializable {
 
     private final DAO sportQuestions = new DAO("Sport", pathToSport);
     private final DAO anatomyQuestions = new DAO("Anatomy", pathToAnatomy);
-    private final DAO geoQuestions = new DAO("Geo", pathToGeo);
+    private final DAO geoQuestions = new DAO("Geography", pathToGeo);
     private final DAO historyQuestions = new DAO("History", pathToHistory);
 
     private boolean playerOneStarts = true;
@@ -207,7 +207,7 @@ public class ServerGame extends Thread implements Serializable {
         }
     }
     public boolean checkCategoryAnswer(String categoryFromUSer) {
-        List<String> validCategories = List.of("Sport", "Geo", "Anatomy", "History");
+        List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
         return validCategories.contains(categoryFromUSer);
     }
 
