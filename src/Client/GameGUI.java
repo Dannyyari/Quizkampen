@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class GameGUI {
@@ -16,15 +17,13 @@ public class GameGUI {
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
 
-
     private QuestionsAndAnswers currentQuestion;
 
-    List<JButton> questionButtons = new ArrayList<>();
 
     private JFrame frame;
     private JPanel mainContainer;
     private CardLayout cardLayout;
-
+    private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
     private List<String> categoryList;
 
 
@@ -66,8 +65,6 @@ public class GameGUI {
         frame.add(mainContainer);
         frame.setVisible(true);
     }
-
-
 
 
     private JPanel createCategoryPanel() {
@@ -122,22 +119,27 @@ public class GameGUI {
         JLabel questionLabel = (JLabel) questionPanel.getComponent(0);
         questionLabel.setText(question.getQuestion());
 
+        List<String> answers = new ArrayList<>();
+        answers.add(question.getCorrectAnswer());
+        answers.add(question.getAnswer2());
+        answers.add(question.getAnswer3());
+        answers.add(question.getAnswer4());
+        Collections.shuffle(answers);
+
         JPanel buttonPanel = (JPanel) questionPanel.getComponent(1);
-        for (Component comp : buttonPanel.getComponents()) {
-            if (comp instanceof JButton button) {
-                questionButtons.add(button);
+        Component[] buttons = buttonPanel.getComponents();
+
+        for (int i = 0; i < buttons.length; i++) {
+            if (buttons[i] instanceof JButton button) {
+                button.setText(answers.get(i));
+                button.setEnabled(true);
             }
         }
 
-        for (int i = 0; i < questionButtons.size(); i++) {
-              JButton butt=  questionButtons.get(i);
-               butt.setBackground(null);
-               butt.setEnabled(true);
-
-        }
     }
 
     private JPanel createQuestionPanel() {
+        List<JButton> buttons = new ArrayList<>();
         JPanel panel = new JPanel(new BorderLayout());
         JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
         questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -145,40 +147,62 @@ public class GameGUI {
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
-            questionButtons.add(button);
+            buttons.add(button);
             button.addActionListener(e -> {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
+                try{
+                    outToServer.writeObject(button.getText());
+                    outToServer.flush();
+                    String correctAnswer= currentQuestion.getCorrectAnswer();
+                    boolean isCorrect = correctAnswer.equals(button.getText());
 
-                for (JButton b : questionButtons) {
-                    if (b.getText().equals(currentQuestion.getCorrectAnswer())) {
-                        b.setBackground(Color.GREEN); // Markera korrekt svar
+                    // Clear previous button colors
+                    buttons.forEach(b -> b.setBackground(UIManager.getColor("Button.background")));
+
+                    // Disable buttons after answering
+                    buttons.forEach(b -> b.setEnabled(false));
+
+                    if (isCorrect) {
+                        System.out.println("Right answer");
+                        // Color the correct button green
+                        button.setBackground(Color.GREEN);
                     } else {
-                        b.setBackground(Color.RED); // Markera felaktigt svar
+                        System.out.println("Wrong answer");
+                        // Color the incorrect answer red
+                        buttons.forEach(b -> {
+                            if (b.getText().equals(correctAnswer)) {
+                                b.setBackground(Color.GREEN); // Correct answer button
+                            } else {
+                                b.setBackground(Color.RED); // Wrong answer buttons
+                            }
+                        });
                     }
-                    b.setEnabled(false); // Inaktivera alla knappar
-                }
-                try {
-                       outToServer.writeObject(button.getText());
-                       outToServer.flush();
-                      cardLayout.show(mainContainer, "Category");
+
+                    Timer timer = new Timer(1200, evt -> {
+                        buttons.get(0).setBackground(UIManager.getColor("Button.background"));
+                        buttons.get(1).setBackground(UIManager.getColor("Button.background"));
+                        buttons.get(2).setBackground(UIManager.getColor("Button.background"));
+                        buttons.get(3).setBackground(UIManager.getColor("Button.background"));
+                        buttons.forEach(b -> b.setEnabled(true));
+
+                    });
+                    timer.setRepeats(false);
+                    timer.start();
+
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             });
             buttonPanel.add(button);
         }
+
         panel.add(buttonPanel, BorderLayout.CENTER);
         panel.revalidate();
         panel.repaint();
         return panel;
     }
-
 
     private JPanel createResultPanel(String playerName, int playerScore, String opponentName, int opponentScore) {
         JPanel resultPanel = new JPanel(new BorderLayout());
@@ -232,6 +256,7 @@ public class GameGUI {
                             }
                             case "STATE_QUESTIONS" -> {
                                 QuestionsAndAnswers question= (QuestionsAndAnswers) inFromServer.readObject();
+                                Thread.sleep(1200);
                           //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
                                 loadQuestion(question);
                                 cardLayout.show(mainContainer, "Question");
@@ -249,7 +274,7 @@ public class GameGUI {
                         }
                     }
                 }
-            } catch (IOException | ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "Anslutningen till servern bröts.", "Fel", JOptionPane.ERROR_MESSAGE);
                 frame.dispose();
