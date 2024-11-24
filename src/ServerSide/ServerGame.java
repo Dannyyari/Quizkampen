@@ -4,6 +4,7 @@ import Properties.RoundSettings;
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -29,7 +30,7 @@ public class ServerGame extends Thread implements Serializable {
 
     private final DAO sportQuestions = new DAO("Sport", pathToSport);
     private final DAO anatomyQuestions = new DAO("Anatomy", pathToAnatomy);
-    private final DAO geoQuestions = new DAO("Geo", pathToGeo);
+    private final DAO geoQuestions = new DAO("Geography", pathToGeo);
     private final DAO historyQuestions = new DAO("History", pathToHistory);
 
     private boolean playerOneStarts = true;
@@ -37,7 +38,9 @@ public class ServerGame extends Thread implements Serializable {
 
     //variabler för resten av logiken
     private int playerOneScore=0;
+    private int playerOneScoreR2=0;
     private int playerTwoScore=0;
+    private int playerTwoScoreR2=0;
     private final static int totalQuestions = settings.getQuestions();
     private final static int totalRounds = settings.getRounds();
 
@@ -113,33 +116,38 @@ public class ServerGame extends Thread implements Serializable {
     public void getResault(int currentRound) throws IOException {
         String scoreBoardP1 = "Du fick: " + playerOneScore + " poäng, din motståndare fick: " + playerTwoScore + " poäng " +
                 "på rond " + currentRound + " av " + totalRounds;
+
         String scoreBoardP2 = "Du fick: " + playerTwoScore + " din motståndare fick: " + playerOneScore + " poäng "+
                 "på rond " + currentRound + " av " + totalRounds;
+
         toPlayerOne.writeObject("STATE_POINTSOFROUND");
         toPlayerTwo.writeObject("STATE_POINTSOFROUND");
         //gör en totalint för att skicka samma till båda
         toPlayerOne.writeObject(scoreBoardP1);
         toPlayerTwo.writeObject(scoreBoardP2);
 
+
         toPlayerOne.flush();
         toPlayerTwo.flush();
     }
 
     public void handlePlayerAnswers(ObjectOutputStream outToPlayer, ObjectInputStream inFromPlayer,
-                                    List<QuestionsAndAnswers> questionsForCategory, boolean isPlayerOne) throws IOException, ClassNotFoundException {
+                                    List<QuestionsAndAnswers> questionsForCategory,
+                                    boolean isPlayerOne) throws IOException, ClassNotFoundException {
         int correctAnswers = 0;
 
         for (int i = 0; i < totalQuestions; i++) {
             outToPlayer.writeObject("STATE_QUESTIONS");
             outToPlayer.flush();
+
             QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
             outToPlayer.writeObject(question); // Skicka frågan till spelaren
-            //  outToPlayer.writeObject(question.getQuestion()); Tidigare såg det ut såhär men vi vill skicka hela skiten
             outToPlayer.flush();
 
             String playerAnswer = (String) inFromPlayer.readObject(); // Ta emot spelarens svar
             // Validera spelarens svar
             if (question.getCorrectAnswer().equalsIgnoreCase(playerAnswer.trim())) {
+
                 correctAnswers++;
                 //kanske ha en checkanswer i varje metod i GUI där vi har en sträng som inparameter, om CORRECT så ska
                 //knappen bli grön?
@@ -149,11 +157,14 @@ public class ServerGame extends Thread implements Serializable {
             }
             outToPlayer.flush();
         }
+
         if (isPlayerOne) {
             playerOneScore += correctAnswers;
         } else {
-            playerTwoScore += correctAnswers;
+                playerTwoScore += correctAnswers;
         }
+
+
 
         // Skicka resultatet till spelaren
         //ta bort här nere???
@@ -162,7 +173,6 @@ public class ServerGame extends Thread implements Serializable {
         outToPlayer.flush();
     }
 
-
     public void handleRound(ObjectOutputStream chooserOut, ObjectInputStream chooserIn,
                             ObjectOutputStream otherPlayerOut, ObjectInputStream otherPlayerIn)
             throws IOException, ClassNotFoundException {
@@ -170,6 +180,7 @@ public class ServerGame extends Thread implements Serializable {
         // Spelare som väljer kategori
         sendCategoriesToClient(chooserOut, getListOfDAOS());
         String chosenCategory = (String) chooserIn.readObject();
+        System.out.println(chosenCategory);
 
         if (!checkCategoryAnswer(chosenCategory)) {
             chooserOut.writeObject("INVALID_CATEGORY");
@@ -182,8 +193,9 @@ public class ServerGame extends Thread implements Serializable {
                 getQuestionsByChosenCategory(chosenCategory, getListOfDAOS());
 
         //göra om detta så att raderna under skiftar, vi vill inte alltid lagra playerOneScore i den första.
-
+        System.out.println("innan vi väljer vem som spelar");
         if (playerOneStarts) {
+            System.out.println("Spelare 1 startar");
             // Spelaren som valde svarar först
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, true);
             // Andra spelaren svarar på samma frågor
@@ -195,7 +207,7 @@ public class ServerGame extends Thread implements Serializable {
         }
     }
     public boolean checkCategoryAnswer(String categoryFromUSer) {
-        List<String> validCategories = List.of("Sport", "Geo", "Anatomy", "History");
+        List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
         return validCategories.contains(categoryFromUSer);
     }
 
