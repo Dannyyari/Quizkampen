@@ -106,7 +106,7 @@ public class GameGUI {
                     if (currentQuestionIndex < questionsList.size()) {
                         loadQuestion(questionsList.get(currentQuestionIndex));
                     } else {
-                        cardLayout.show(mainContainer, "Waiting");
+                        cardLayout.show(mainContainer, "Category");
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -115,6 +115,8 @@ public class GameGUI {
             buttonPanel.add(button);
         }
         panel.add(buttonPanel, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
         return panel;
     }
 
@@ -126,11 +128,11 @@ public class GameGUI {
         for (int i = 0; i < buttons.length; i++) {
             if (buttons[i] instanceof JButton button) {
                 if (i < categories.size()) {
-                    button.setText(categories.get(i));
-                    button.setEnabled(true);
+                    button.setText(categories.get(i)); // Sätt text på knappen baserat på kategorilistan
+                    button.setEnabled(true);  // Aktivera knappen
                 } else {
                     button.setText("");
-                    button.setEnabled(false);
+                    button.setEnabled(false);  // Inaktivera knappen om det inte finns en kategori
                 }
             }
         }
@@ -207,6 +209,7 @@ public class GameGUI {
                         switch (message) {
                             case "STATE_CATEGORY" -> {
                                 categoryList = (List<String>) inFromServer.readObject();
+                                System.out.println(playerName + " mottog kategorier: " + categoryList);
                                 updateCategoryButtons(categoryList);
                                 cardLayout.show(mainContainer, "Category");
                             }
