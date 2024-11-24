@@ -63,10 +63,7 @@ public class ServerGame extends Thread implements Serializable {
     }
 
 
-    //Frågan är ifall detta är allt som behövs?
     public void run() {
-
-        //här ska då metoder som vi skickar och hämtar från användaren. programmets "hjärna"
         try {
             while (true) {
                 System.out.println("in serverGame loop");
@@ -74,7 +71,6 @@ public class ServerGame extends Thread implements Serializable {
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts) {
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo, fromPlayerTwo);
-                        //skapa metod som skickar totala resultat för båda spelare
                         playerOneStarts = false;
                     } else {
                         handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
@@ -82,14 +78,15 @@ public class ServerGame extends Thread implements Serializable {
                     }
                     getResault(round);
                 }
+                // Skicka slutresultatet efter alla rundor
+                sendFinalResults();
                 break;
             }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     public List<DAO> getListOfDAOS() {
         List<DAO> listOfDAO = new ArrayList<>();
@@ -113,11 +110,13 @@ public class ServerGame extends Thread implements Serializable {
     }
 
     public void getResault(int currentRound) throws IOException {
-        String scoreBoardP1 = "Du fick: " + playerOneScore + " poäng, din motståndare fick: " + playerTwoScore + " poäng " +
-                "på rond " + currentRound + " av " + totalRounds;
+        String scoreBoardP1 = "Du fick: " + playerOneScore + " poäng. \n" +
+                "Motståndare fick: " + playerTwoScore + " poäng. \n" +
+                "Rond " + currentRound + " av " + totalRounds;
 
-        String scoreBoardP2 = "Du fick: " + playerTwoScore + " din motståndare fick: " + playerOneScore + " poäng "+
-                "på rond " + currentRound + " av " + totalRounds;
+        String scoreBoardP2 = "Du fick: " + playerTwoScore + " poäng. \n" +
+                "Motståndare fick: " + playerOneScore + " poäng. \n" +
+                "Rond " + currentRound + " av " + totalRounds;
 
         toPlayerOne.writeObject("STATE_POINTSOFROUND");
         toPlayerTwo.writeObject("STATE_POINTSOFROUND");
@@ -163,7 +162,7 @@ public class ServerGame extends Thread implements Serializable {
         // Skicka resultatet till spelaren
         //ta bort här nere???
         outToPlayer.writeObject("STATE_RESULT");
-        outToPlayer.writeObject("You got " + correctAnswers + " correct answers out of " + totalQuestions + " questions");
+        outToPlayer.writeObject("Du fick " + correctAnswers + " rätta svar av " + totalQuestions + " antal frågor.");
         outToPlayer.flush();
     }
 
@@ -214,9 +213,45 @@ public class ServerGame extends Thread implements Serializable {
 
         }
         return null;
-
     }
 
+    private void sendFinalResults() throws IOException {
+        // Kontrollerar vem som vann
+        // Finns tre olika outcomes.
+        String winnerMessagePlayerOne;
+        String winnerMessagePlayerTwo;
+
+        if (playerOneScore > playerTwoScore) {
+            winnerMessagePlayerOne = "Spelet är slut! Du vann!\n";
+            winnerMessagePlayerTwo = "Spelet är slut! Du förlorade!\n";
+        } else if (playerOneScore < playerTwoScore) {
+            winnerMessagePlayerOne = "Spelet är slut! Du förlorade!\n";
+            winnerMessagePlayerTwo = "Spelet är slut! Du vann!\n";
+        } else {
+            winnerMessagePlayerOne = "Spelet är slut! Det blev oavgjort!\n";
+            winnerMessagePlayerTwo = "Spelet är slut! Det blev oavgjort!\n";
+        }
+
+        // Skapa ett resultatmeddelande för spelare 1
+        String resultPlayerOne = winnerMessagePlayerOne +
+                "Du fick totalt " + playerOneScore + " poäng på " + totalRounds + " ronder.\n" +
+                "Motståndaren fick totalt " + playerTwoScore + " poäng på " + totalRounds + " ronder.\n";
+
+        // Skapa ett resultatmeddelande för spelare 2
+        String resultPlayerTwo = winnerMessagePlayerTwo +
+                "Du fick totalt " + playerTwoScore + " poäng på " + totalRounds + " ronder.\n" +
+                "Motståndaren fick totalt " + playerOneScore + " poäng på " + totalRounds + " ronder.\n";
+
+        // Skicka resultaten till spelare 1
+        toPlayerOne.writeObject("STATE_RESULT");
+        toPlayerOne.writeObject(resultPlayerOne);
+        toPlayerOne.flush();
+
+        // Skicka resultaten till spelare 2
+        toPlayerTwo.writeObject("STATE_RESULT");
+        toPlayerTwo.writeObject(resultPlayerTwo);
+        toPlayerTwo.flush();
+    }
 
     //KANSKE
     //SCOREBOARD
@@ -224,5 +259,4 @@ public class ServerGame extends Thread implements Serializable {
     //har samlat poäng för aktuell runda.
     //Detta blir då total poäng.
     //Spelarens egna poäng som personen alltid ska kunna se finns i klient
-
 }

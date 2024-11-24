@@ -43,7 +43,7 @@ public class GameGUI {
 
     private void initializeNetwork() throws IOException {
         InetAddress serverAddress = InetAddress.getLoopbackAddress();
-        int port = 55555;
+        int port = 55553;
 
         clientSocket = new Socket(serverAddress, port);
         outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -52,7 +52,7 @@ public class GameGUI {
     }
 
     private void initializeGUI() {
-        frame = new JFrame("Quiz Game - " + playerName);
+        frame = new JFrame("QuizKampen - " + playerName);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
 
@@ -86,7 +86,7 @@ public class GameGUI {
                     String buttontext=button.getText();
                     outToServer.writeObject(buttontext);
                     outToServer.flush();
-                    System.out.println("försöker trycka på kateogriknapp");
+                    System.out.println("Försöker trycka på knapp.");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
