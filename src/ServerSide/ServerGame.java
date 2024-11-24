@@ -4,6 +4,7 @@ import Properties.RoundSettings;
 import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -131,7 +132,8 @@ public class ServerGame extends Thread implements Serializable {
     }
 
     public void handlePlayerAnswers(ObjectOutputStream outToPlayer, ObjectInputStream inFromPlayer,
-                                    List<QuestionsAndAnswers> questionsForCategory, boolean isPlayerOne) throws IOException, ClassNotFoundException {
+                                    List<QuestionsAndAnswers> questionsForCategory,
+                                    boolean isPlayerOne) throws IOException, ClassNotFoundException {
         int correctAnswers = 0;
 
         for (int i = 0; i < totalQuestions; i++) {
@@ -145,6 +147,7 @@ public class ServerGame extends Thread implements Serializable {
             String playerAnswer = (String) inFromPlayer.readObject(); // Ta emot spelarens svar
             // Validera spelarens svar
             if (question.getCorrectAnswer().equalsIgnoreCase(playerAnswer.trim())) {
+
                 correctAnswers++;
                 //kanske ha en checkanswer i varje metod i GUI där vi har en sträng som inparameter, om CORRECT så ska
                 //knappen bli grön?
