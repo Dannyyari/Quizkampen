@@ -15,20 +15,18 @@ public class GameGUI {
     private Socket clientSocket;
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
-//    JButton b=new JButton();
-//    JButton b=new JButton();
-//    JButton b=new JButton();
-//    JButton b=new JButton();
 
-    private  JButton question1, question2, question3, question4;
+
+    private QuestionsAndAnswers currentQuestion;
+
+    List<JButton> questionButtons = new ArrayList<>();
 
     private JFrame frame;
     private JPanel mainContainer;
     private CardLayout cardLayout;
 
     private List<String> categoryList;
-    private List<QuestionsAndAnswers> questionsList;
-    private int currentQuestionIndex;
+
 
     public GameGUI(String playerName) {
         this.playerName = playerName;
@@ -88,12 +86,7 @@ public class GameGUI {
                     String buttontext=button.getText();
                     outToServer.writeObject(buttontext);
                     outToServer.flush();
-                    if (e.getSource()==question.getCorrectAnswer()){
-                        //gör till grön
-                    }else {
-                        //gör knappar till röd
-                    }
-                    System.out.println("försöker trycka på knapp");
+                    System.out.println("försöker trycka på kateogriknapp");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -124,37 +117,26 @@ public class GameGUI {
         buttonPanel.repaint();
     }
     private void loadQuestion(QuestionsAndAnswers question) {
+        this.currentQuestion=question;
         JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
         JLabel questionLabel = (JLabel) questionPanel.getComponent(0);
         questionLabel.setText(question.getQuestion());
 
-//        question1.setText(question.getCorrectAnswer());
-//        question2.setText(question.getAnswer2());
-//        question3.setText(question.getAnswer3());
-//        question4.setText(question.getAnswer4());
-//
-//        List <JButton> knappar=new ArrayList<>();
-//        knappar.add(question1);
-//        knappar.add(question2);
-//        knappar.add(question3);
-//        knappar.add(question4);
-
         JPanel buttonPanel = (JPanel) questionPanel.getComponent(1);
-        Component[] buttons = buttonPanel.getComponents();
-        String[] answers = {
-                question.getCorrectAnswer(),
-                question.getAnswer2(),
-                question.getAnswer3(),
-                question.getAnswer4()
-        };
-
-        for (int i = 0; i < buttons.length; i++) {
-            if (buttons[i] instanceof JButton button) {
-                button.setText(answers[i]);
-                button.setEnabled(true);
+        for (Component comp : buttonPanel.getComponents()) {
+            if (comp instanceof JButton button) {
+                questionButtons.add(button);
             }
         }
+
+        for (int i = 0; i < questionButtons.size(); i++) {
+              JButton butt=  questionButtons.get(i);
+               butt.setBackground(null);
+               butt.setEnabled(true);
+
+        }
     }
+
     private JPanel createQuestionPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
@@ -165,11 +147,26 @@ public class GameGUI {
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
+            questionButtons.add(button);
             button.addActionListener(e -> {
                 try {
-                    outToServer.writeObject(button.getText());
-                    outToServer.flush();
-                    cardLayout.show(mainContainer, "Category");
+                    Thread.sleep(2000);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                for (JButton b : questionButtons) {
+                    if (b.getText().equals(currentQuestion.getCorrectAnswer())) {
+                        b.setBackground(Color.GREEN); // Markera korrekt svar
+                    } else {
+                        b.setBackground(Color.RED); // Markera felaktigt svar
+                    }
+                    b.setEnabled(false); // Inaktivera alla knappar
+                }
+                try {
+                       outToServer.writeObject(button.getText());
+                       outToServer.flush();
+                      cardLayout.show(mainContainer, "Category");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }

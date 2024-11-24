@@ -157,7 +157,7 @@ public class ServerGame extends Thread implements Serializable {
         if (isPlayerOne) {
             playerOneScore += correctAnswers;
         } else {
-                playerTwoScore += correctAnswers;
+            playerTwoScore += correctAnswers;
         }
 
         // Skicka resultatet till spelaren
