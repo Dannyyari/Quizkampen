@@ -1,12 +1,15 @@
 package Client;
 
+import Questions.DAO;
 import Questions.QuestionsAndAnswers;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.*;
 import java.util.List;
 
 public class GameGUI {
@@ -14,14 +17,41 @@ public class GameGUI {
     private Socket clientSocket;
     private ObjectOutputStream outToServer;
     private ObjectInputStream inFromServer;
+    private final String pathToSport = "src/Questions/textfiles/SportQuestions";
+    private final String pathToGeo = "src/Questions/textfiles/GeoQuestions";
+    private final String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
+    private final String pathToHistory = "src/Questions/textfiles/HistoryQuestions";
+
+    private final DAO sportQuestions = new DAO("Sport", pathToSport);
+    private final DAO anatomyQuestions = new DAO("Anatomy", pathToAnatomy);
+    private final DAO geoQuestions = new DAO("Geo", pathToGeo);
+    private final DAO historyQuestions = new DAO("History", pathToHistory);
+
+
+
+
+//    JButton b=new JButton();
+//    JButton b=new JButton();
+//    JButton b=new JButton();
+//    JButton b=new JButton();
+
+    private  JButton question1, question2, question3, question4;
 
     private JFrame frame;
     private JPanel mainContainer;
     private CardLayout cardLayout;
 
     private List<String> categoryList;
-    private List<QuestionsAndAnswers> questionsList;
+    private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
+
     private int currentQuestionIndex;
+
+    private void populateQuestionsList() {
+        questionsList.addAll(sportQuestions.getQuestionsAndAnswers());
+        questionsList.addAll(anatomyQuestions.getQuestionsAndAnswers());
+        questionsList.addAll(geoQuestions.getQuestionsAndAnswers());
+        questionsList.addAll(historyQuestions.getQuestionsAndAnswers());
+    }
 
     public GameGUI(String playerName) {
         this.playerName = playerName;
@@ -81,6 +111,13 @@ public class GameGUI {
                     String buttontext=button.getText();
                     outToServer.writeObject(buttontext);
                     outToServer.flush();
+
+
+                    // if (e.getSource()==question.getCorrectAnswer()){
+                    //gör till grön
+                    // }else {
+                    //gör knappar till röd
+                    //  }
                     System.out.println("försöker trycka på knapp");
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -111,41 +148,21 @@ public class GameGUI {
         buttonPanel.revalidate();
         buttonPanel.repaint();
     }
-    private JPanel createQuestionPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        panel.add(questionLabel, BorderLayout.NORTH);
-
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
-        for (int i = 0; i < 4; i++) {
-            JButton button = new JButton();
-            button.addActionListener(e -> {
-                try {
-                    outToServer.writeObject(button.getText());
-                    outToServer.flush();
-                    currentQuestionIndex++;
-                    if (currentQuestionIndex <= questionsList.size()) {
-                        loadQuestion(questionsList.get(currentQuestionIndex));
-                    } else {
-                        cardLayout.show(mainContainer, "Category");
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            });
-            buttonPanel.add(button);
-        }
-        panel.add(buttonPanel, BorderLayout.CENTER);
-        panel.revalidate();
-        panel.repaint();
-        return panel;
-    }
     private void loadQuestion(QuestionsAndAnswers question) {
         JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
         JLabel questionLabel = (JLabel) questionPanel.getComponent(0);
         questionLabel.setText(question.getQuestion());
+
+//        question1.setText(question.getCorrectAnswer());
+//        question2.setText(question.getAnswer2());
+//        question3.setText(question.getAnswer3());
+//        question4.setText(question.getAnswer4());
+//
+//        List <JButton> knappar=new ArrayList<>();
+//        knappar.add(question1);
+//        knappar.add(question2);
+//        knappar.add(question3);
+//        knappar.add(question4);
 
         JPanel buttonPanel = (JPanel) questionPanel.getComponent(1);
         Component[] buttons = buttonPanel.getComponents();
@@ -163,6 +180,68 @@ public class GameGUI {
             }
         }
     }
+    private JPanel createQuestionPanel() {
+        List<JButton> buttons = new ArrayList<>();
+        populateQuestionsList();
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel questionLabel = new JLabel("", SwingConstants.CENTER);
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        panel.add(questionLabel, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+
+        for (int i = 0; i < 4; i++) {
+            JButton button = new JButton();
+            buttons.add(button);
+            button.addActionListener(e -> {
+                try {
+                    outToServer.writeObject(button.getText());
+                    outToServer.flush();
+
+                    boolean isCorrect = questionsList.stream()
+                            .anyMatch(q -> q.getCorrectAnswer().equals(button.getText()));
+
+                    if (isCorrect) {
+                        System.out.println("Right answer");
+                        buttons.get(1).setBackground(Color.RED);
+                        buttons.get(2).setBackground(Color.RED);
+                        buttons.get(3).setBackground(Color.RED);
+                        button.setBackground(Color.GREEN);
+                    } else {
+                        System.out.println("Wrong answer");
+                        buttons.get(1).setBackground(Color.RED);
+                        buttons.get(2).setBackground(Color.RED);
+                        buttons.get(3).setBackground(Color.RED);
+                        buttons.get(0).setBackground(Color.GREEN);
+                    }
+                    buttons.forEach(b -> b.setEnabled(false));
+
+
+                    Timer timer = new Timer(1000, evt -> {
+                        buttons.get(0).setBackground(UIManager.getColor("Button.background"));
+                        buttons.get(1).setBackground(UIManager.getColor("Button.background"));
+                        buttons.get(2).setBackground(UIManager.getColor("Button.background"));
+                        buttons.get(3).setBackground(UIManager.getColor("Button.background"));
+                        buttons.forEach(b -> b.setEnabled(true));
+
+                    });
+                    timer.setRepeats(false);
+                    timer.start();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            });
+            buttonPanel.add(button);
+        }
+
+        panel.add(buttonPanel, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
+        return panel;
+    }
+
 
     private JPanel createResultPanel(String playerName, int playerScore, String opponentName, int opponentScore) {
         JPanel resultPanel = new JPanel(new BorderLayout());
@@ -216,7 +295,9 @@ public class GameGUI {
                             }
                             case "STATE_QUESTIONS" -> {
                                 QuestionsAndAnswers question= (QuestionsAndAnswers) inFromServer.readObject();
-                          //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
+                                //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
+                                Thread.sleep(1000);
+
                                 loadQuestion(question);
                                 cardLayout.show(mainContainer, "Question");
                             }
@@ -237,11 +318,14 @@ public class GameGUI {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "Anslutningen till servern bröts.", "Fel", JOptionPane.ERROR_MESSAGE);
                 frame.dispose();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }).start();
     }
 
     public static void main(String[] args) {
+
         SwingUtilities.invokeLater(() -> {
             String playerName = JOptionPane.showInputDialog(null, "Vad heter du?", "Ange ditt namn", JOptionPane.QUESTION_MESSAGE);
             if (playerName != null && !playerName.trim().isEmpty()) {
