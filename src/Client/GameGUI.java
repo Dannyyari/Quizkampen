@@ -13,6 +13,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/*
+Klassen GameGUI hanterar användargränssnittet för ett quizspel och möjliggör interaktion
+mellan spelaren och spelets logik. Den ansvarar för att presentera olika skärmar och hantera
+användarinmatningar.
+
+Funktioner:
+- Skapar GUI med hjälp av Java Swing, med paneler för kategorival, frågesvar och slutresultat.
+- Hanterar anslutningen till servern via sockets för att skicka och ta emot speldata.
+- Dynamiskt uppdaterar knappar, etiketter och vyer baserat på serverns tillstånd och spelprogress.
+- Lyssnar på server meddelanden i en separat tråd och visar rätt innehåll (kategorier, frågor eller resultat).
+- Behandlar användar inmatningar och skickar val till servern för att hantera spelets logik.
+- Ger visuell feedback vid rätt eller fel svar genom att färgmarkera knappar och visa meddelanden.
+
+ */
+
+
+//Definierar variabler för att hantera spelarnamn, serverkommunikation,
+// aktuella frågor, och gränssnittskomponenter som hanterar spelets olika vyer.
 public class GameGUI {
     private final String playerName;
     private Socket clientSocket;
@@ -27,6 +45,8 @@ public class GameGUI {
     private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
     private List<String> categoryList;
 
+    //Konstruktor som initierar spelarnamn, startar nätverksanslutning, bygger GUI,
+    // och startar en tråd för att lyssna på servern. Hanterar fel vid anslutningsproblem.
     public GameGUI(String playerName) {
         this.playerName = playerName;
         try {
@@ -39,6 +59,8 @@ public class GameGUI {
         }
     }
 
+    //Initierar nätverksanslutningen genom att skapa en socket till servern,
+    // samt instanserar strömmar för att skicka och ta emot data.
     private void initializeNetwork() throws IOException {
         InetAddress serverAddress = InetAddress.getLoopbackAddress();
         int port = 55553;
@@ -49,6 +71,8 @@ public class GameGUI {
         System.out.println("Ansluten till servern!");
     }
 
+    //Skapar och konfigurerar huvudfönstret för GUI, lägger till paneler för kategorier,
+    // frågor och vänteläge med hjälp av CardLayout för att byta mellan vyer.
     private void initializeGUI() {
         frame = new JFrame("QuizKampen - " + playerName);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,12 +89,15 @@ public class GameGUI {
         frame.setVisible(true);
     }
 
+    //Skapar en panel för att visa kategoriväljaren, med en etikett som instruerar användaren att välja en kategori.
     private JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel label = new JLabel("Välj en kategori", SwingConstants.CENTER);
         label.setFont(new Font("Arial", Font.BOLD, 18));
         panel.add(label, BorderLayout.NORTH);
 
+        //Skapar en panel med fyra knappar för kategoriurval,
+        // där varje knapp skickar vald kategori till servern när den klickas.
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         for (int i = 0; i < 4; i++) {
@@ -91,6 +118,8 @@ public class GameGUI {
         return panel;
     }
 
+    //Uppdaterar knapparna för kategoriurval baserat på en lista av kategorier,
+    // aktiverar dem och sätter rätt text, samt inaktiverar knappar om det inte finns tillräckligt med kategorier.
     private void updateCategoryButtons(List<String> categories) {
         JPanel categoryPanel = (JPanel) mainContainer.getComponent(0);
         JPanel buttonPanel = (JPanel) categoryPanel.getComponent(1);
@@ -111,6 +140,8 @@ public class GameGUI {
         buttonPanel.repaint();
     }
 
+    //Laddar en fråga och svar från ett QuestionsAndAnswers objekt,
+    // visar frågan och blandar svaren, och uppdaterar knapparna i GUI med de nya svarsalternativen.
     private void loadQuestion(QuestionsAndAnswers question) {
         this.currentQuestion = question;
         JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
@@ -135,6 +166,8 @@ public class GameGUI {
         }
     }
 
+    // Skapar en panel för att visa frågan och svarsalternativen,
+    // med en etikett för frågan och en panel för att arrangera svarsknapparna i ett rutnät.
     private JPanel createQuestionPanel() {
         List<JButton> buttons = new ArrayList<>();
         JPanel panel = new JPanel(new BorderLayout());
@@ -145,6 +178,8 @@ public class GameGUI {
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
+        //Skapar knappar för svarsalternativ, skickar valt svar till servern,
+        // och ger visuell feedback genom att färga knapparna grön eller röd beroende på om svaret är korrekt eller ej.
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
             buttons.add(button);
@@ -177,6 +212,8 @@ public class GameGUI {
                         });
                     }
 
+                    // Skapar en timer för att återställa knappfärger och aktivera knappar efter en kort fördröjning,
+                    // samt säkerställer att knapparna uppdateras korrekt efter att ett svar har valts.
                     Timer timer = new Timer(1200, evt -> {
                         buttons.get(0).setBackground(UIManager.getColor("Button.background"));
                         buttons.get(1).setBackground(UIManager.getColor("Button.background"));
@@ -200,6 +237,9 @@ public class GameGUI {
         return panel;
     }
 
+
+    // Skapar och visar en panel för att visa slutresultatet av spelet,
+    // inklusive vinnarmeddelande och resultaten för båda spelarna, samt en knapp för att stänga spelet.
     private void createFinalResultPanel(String winnerMessage, String playerOneResults, String playerTwoResults) {
         JPanel finalResultPanel = new JPanel(new BorderLayout());
 
@@ -238,6 +278,9 @@ public class GameGUI {
         cardLayout.show(mainContainer, "FinalResult");
     }
 
+
+    // Startar en bakgrundstråd som kontinuerligt lyssnar på servermeddelanden och hanterar
+    // olika speltillstånd (kategori, frågor, poäng, resultat) genom att uppdatera GUI baserat på mottagna data.
     private void startNetworkThread() {
         new Thread(() -> {
             try {
@@ -285,6 +328,8 @@ public class GameGUI {
         }).start();
     }
 
+    //Startar programmet genom att be användaren ange sitt namn i en dialogruta.
+    // Om ett giltigt namn anges skapas ett nytt GameGUI-objekt, annars visas ett felmeddelande.
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             String playerName = JOptionPane.showInputDialog(null, "Vad heter du?", "Ange ditt namn", JOptionPane.QUESTION_MESSAGE);
