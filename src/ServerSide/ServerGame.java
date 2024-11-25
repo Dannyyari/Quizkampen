@@ -132,7 +132,7 @@ public class ServerGame extends Thread implements Serializable {
         toPlayerTwo.flush();
     }
 
-    // Klart. Kommentar ska läggas in.
+    // Klart. Ska lägga kommentar.
     public void handlePlayerAnswers(
             ObjectOutputStream outToPlayer,
             ObjectInputStream inFromPlayer,
@@ -141,6 +141,7 @@ public class ServerGame extends Thread implements Serializable {
             throws IOException, ClassNotFoundException {
 
         int correctAnswers = 0;
+
         for (int i = 0; i < totalQuestions; i++) {
             outToPlayer.writeObject("STATE_QUESTIONS");
             outToPlayer.flush();
@@ -153,13 +154,13 @@ public class ServerGame extends Thread implements Serializable {
             // Validera spelarens svar
             if (question.getCorrectAnswer().equalsIgnoreCase(playerAnswer.trim())) {
                 correctAnswers++;
+
                 outToPlayer.writeObject("CORRECT"); // Informera spelaren att svaret var rätt
             } else {
                 outToPlayer.writeObject("WRONG"); // Informera spelaren att svaret var fel
             }
             outToPlayer.flush();
         }
-
         if (isPlayerOne) {
             playerOneScore += correctAnswers;
         } else {
