@@ -4,7 +4,9 @@ import Questions.QuestionsAndAnswers;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -76,7 +78,7 @@ public class GameGUI {
             button.setEnabled(true); //ska den vara false eller true
             button.addActionListener(e -> {
                 try {
-                    String buttontext=button.getText();
+                    String buttontext = button.getText();
                     outToServer.writeObject(buttontext);
                     outToServer.flush();
                 } catch (IOException ex) {
@@ -108,8 +110,9 @@ public class GameGUI {
         buttonPanel.revalidate();
         buttonPanel.repaint();
     }
+
     private void loadQuestion(QuestionsAndAnswers question) {
-        this.currentQuestion=question;
+        this.currentQuestion = question;
         JPanel questionPanel = (JPanel) mainContainer.getComponent(1);
         JLabel questionLabel = (JLabel) questionPanel.getComponent(0);
         questionLabel.setText(question.getQuestion());
@@ -146,10 +149,10 @@ public class GameGUI {
             JButton button = new JButton();
             buttons.add(button);
             button.addActionListener(e -> {
-                try{
+                try {
                     outToServer.writeObject(button.getText());
                     outToServer.flush();
-                    String correctAnswer= currentQuestion.getCorrectAnswer();
+                    String correctAnswer = currentQuestion.getCorrectAnswer();
                     boolean isCorrect = correctAnswer.equals(button.getText());
 
                     // Clear previous button colors
@@ -249,7 +252,7 @@ public class GameGUI {
                                 cardLayout.show(mainContainer, "Category");
                             }
                             case "STATE_QUESTIONS" -> {
-                                QuestionsAndAnswers question= (QuestionsAndAnswers) inFromServer.readObject();
+                                QuestionsAndAnswers question = (QuestionsAndAnswers) inFromServer.readObject();
                                 Thread.sleep(1200);
                                 //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
                                 loadQuestion(question);

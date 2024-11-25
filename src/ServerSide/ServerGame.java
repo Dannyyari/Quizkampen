@@ -13,18 +13,18 @@ import java.util.List;
 
 /**
  * ServerGame - Hanterar spelets logik och interaktion mellan två spelare (spelets hjärna).
- *
+ * <p>
  * Denna klass ansvarar för att koordinera spelets flöde mellan två anslutna spelare.
  * Den hanterar kommunikation via objektströmmar, skickar och tar emot frågor, samt uppdaterar poäng.
- *
+ * <p>
  * Funktioner:
  * - Hanterar spelrundor, turordning och poängberäkning.
  * - Hämtar frågor baserat på kategorier.
  * - Validerar spelarnas svar och tilldelar poäng.
  * - Skickar resultat efter varje runda och vid spelets slut.
- *
+ * <p>
  * Klassen använder DAO för att hämta frågor och RoundSettings för spelets inställningar.
- *
+ * <p>
  * Klassen skickar STATE till klienten så klienten ska veta vad som ska visas i GUI
  */
 
@@ -62,7 +62,7 @@ public class ServerGame extends Thread implements Serializable {
     private final static int totalRounds = settings.getRounds();
 
     // Kopplar samman två spelare och initierar objektströmmar för kommunikation.
-    public ServerGame( ServerSidePlayer PlayerOne, ServerSidePlayer PlayerTwo) throws IOException {
+    public ServerGame(ServerSidePlayer PlayerOne, ServerSidePlayer PlayerTwo) throws IOException {
         this.playerOneSocket = PlayerOne;
         this.playerTwoSocket = PlayerTwo;
 
@@ -106,10 +106,10 @@ public class ServerGame extends Thread implements Serializable {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             System.out.println("ClassNotFoundException under rundhantering: " + e.getMessage());
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             System.out.println("IOException under run:" + e.getMessage());
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             e.printStackTrace();
             System.out.println("Okänt fel: " + e.getMessage());
         }
@@ -124,6 +124,7 @@ public class ServerGame extends Thread implements Serializable {
         listOfDAO.add(historyQuestions);
         return listOfDAO;
     }
+
     //Kollar igenom ifall den kategorin användaren matar in finns att välja mellan.
     public boolean checkCategoryAnswer(String categoryFromUSer) {
         List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
@@ -173,7 +174,7 @@ public class ServerGame extends Thread implements Serializable {
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, false);
         } else {
-                                                    //Denna boolean är för att kunna flippa spelet så poäng lagras på korrekt spelare
+            //Denna boolean är för att kunna flippa spelet så poäng lagras på korrekt spelare
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, false);
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);

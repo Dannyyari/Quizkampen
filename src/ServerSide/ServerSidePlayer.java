@@ -14,8 +14,8 @@ import java.net.Socket;
  */
 
 public class ServerSidePlayer {
-    private Socket sock; // Spelarens nätverksanslutning.
-    private String name; // Spelarens namn.
+    private final Socket sock; // Spelarens nätverksanslutning.
+    private final String name; // Spelarens namn.
     private ServerSidePlayer opponent; // Referens till spelarens motståndare.
 
     // Konstruktor för att initiera en spelare med socket och namn.
@@ -24,7 +24,9 @@ public class ServerSidePlayer {
         this.name = name;
     }
 
-    public String getName() {return name;}
+    public String getName() {
+        return name;
+    }
 
     public Socket getSock() {
         return sock;

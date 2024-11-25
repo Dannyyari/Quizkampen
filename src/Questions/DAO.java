@@ -1,9 +1,12 @@
 package Questions;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 /*
  Klassen DAO (Data Access Object) hanterar inläsning och lagring av frågor och svar
  från en fil till en lista av QuestionsAndAnswers-objekt. Den används för att

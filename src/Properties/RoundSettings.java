@@ -1,6 +1,7 @@
 package Properties;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 /*
@@ -20,8 +21,8 @@ import java.util.Properties;
 
 public class RoundSettings {
 
-    private int rounds;
-    private int questions;
+    private final int rounds;
+    private final int questions;
 
     public RoundSettings() {
         Properties properties = new Properties();

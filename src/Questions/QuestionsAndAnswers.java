@@ -55,7 +55,6 @@ public class QuestionsAndAnswers implements Serializable {
     }
 
 
-
     @Override
     public String toString() {
         return "Fråga: " + question + "\nRätt svar: " + correctAnswer;
