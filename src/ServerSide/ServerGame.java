@@ -12,38 +12,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServerGame extends Thread implements Serializable {
+    // Klart.
     ServerSidePlayer playerOneSocket;
     ServerSidePlayer playerTwoSocket;
 
+    // Klart
     private final ObjectOutputStream toPlayerOne;
     private final ObjectOutputStream toPlayerTwo;
     private final ObjectInputStream fromPlayerOne;
     private final ObjectInputStream fromPlayerTwo;
 
-    private List<QuestionsAndAnswers> questions;
-    private final int currentQuestionIndex = 0;
-
+    // Klart
     private final String pathToSport = "src/Questions/textfiles/SportQuestions";
     private final String pathToGeo = "src/Questions/textfiles/GeoQuestions";
     private final String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
     private final String pathToHistory = "src/Questions/textfiles/HistoryQuestions";
 
+    // Klart
     private final DAO sportQuestions = new DAO("Sport", pathToSport);
     private final DAO anatomyQuestions = new DAO("Anatomy", pathToAnatomy);
     private final DAO geoQuestions = new DAO("Geography", pathToGeo);
     private final DAO historyQuestions = new DAO("History", pathToHistory);
 
+    // Klart.
     private boolean playerOneStarts = true;
-    static RoundSettings settings = settings = new RoundSettings();
 
-    //variabler för resten av logiken
+    // Klart. Variabler för resten av logiken.
     private int playerOneScore = 0;
     private int playerTwoScore = 0;
+
+    // Jag är lite osäker här.
+    private List<QuestionsAndAnswers> questions;
+    private final int currentQuestionIndex = 0;
+    static RoundSettings settings = settings = new RoundSettings();
 
     private final static int totalQuestions = settings.getQuestions();
     private final static int totalRounds = settings.getRounds();
 
-    //kopplar två spelare
+    // Klart. Kopplar två spelare.
     public ServerGame( ServerSidePlayer PlayerOne, ServerSidePlayer PlayerTwo) throws IOException {
 
         this.playerOneSocket = PlayerOne;
@@ -132,7 +138,7 @@ public class ServerGame extends Thread implements Serializable {
         toPlayerTwo.flush();
     }
 
-    // Klart. Ska lägga kommentar.
+    // Nästan klart, titta längst ner. Ska lägga kommentar.
     public void handlePlayerAnswers(
             ObjectOutputStream outToPlayer,
             ObjectInputStream inFromPlayer,
@@ -141,13 +147,12 @@ public class ServerGame extends Thread implements Serializable {
             throws IOException, ClassNotFoundException {
 
         int correctAnswers = 0;
-
         for (int i = 0; i < totalQuestions; i++) {
             outToPlayer.writeObject("STATE_QUESTIONS");
             outToPlayer.flush();
 
             QuestionsAndAnswers question = questionsForCategory.get(i); // Hämta fråga och svar
-            outToPlayer.writeObject(question);// Skicka frågan till spelaren
+            outToPlayer.writeObject(question); // Skicka frågan till spelaren
             outToPlayer.flush();
 
             String playerAnswer = (String) inFromPlayer.readObject(); // Ta emot spelarens svar
@@ -173,6 +178,7 @@ public class ServerGame extends Thread implements Serializable {
         outToPlayer.flush();
     }
 
+    // Nästan klart, tror jag.
     public void handleRound(
             ObjectOutputStream chooserOut,
             ObjectInputStream chooserIn,
@@ -203,21 +209,22 @@ public class ServerGame extends Thread implements Serializable {
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, true);
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, false);
-        }else {
+        } else {
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, false);
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);
         }
     }
+
     public boolean checkCategoryAnswer(String categoryFromUSer) {
         List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
         return validCategories.contains(categoryFromUSer);
     }
 
-    //förenklad metod inne i handleRound för att ta ut frågor och alla svar i en lista som ska skickas till klienten
-    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String catagory, List<DAO> daos) throws IOException {
+    // Förenklad metod inne i handleRound för att ta ut frågor och alla svar i en lista som ska skickas till klienten
+    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String category, List<DAO> daos) throws IOException {
         for (DAO dao : daos) {
-            if (dao.getCategory().equalsIgnoreCase(catagory)) {
+            if (dao.getCategory().equalsIgnoreCase(category)) {
                 return dao.getQuestionsAndAnswers();
             }
         }
