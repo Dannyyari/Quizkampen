@@ -135,13 +135,13 @@ public class ServerGame extends Thread implements Serializable {
     public void getResult(int currentRound) throws IOException {
         String scoreBoardP1 =
                 "Du fick: " + playerOneScore + " poäng. \n" +
-                "Motståndare fick: " + playerTwoScore + " poäng. \n" +
-                "Rond " + currentRound + " av " + totalRounds;
+                        "Motståndare fick: " + playerTwoScore + " poäng. \n" +
+                        "Rond " + currentRound + " av " + totalRounds;
 
         String scoreBoardP2 =
                 "Du fick: " + playerTwoScore + " poäng. \n" +
-                "Motståndare fick: " + playerOneScore + " poäng. \n" +
-                "Rond " + currentRound + " av " + totalRounds;
+                        "Motståndare fick: " + playerOneScore + " poäng. \n" +
+                        "Rond " + currentRound + " av " + totalRounds;
 
         toPlayerOne.writeObject("STATE_POINTSOFROUND");
         toPlayerTwo.writeObject("STATE_POINTSOFROUND");

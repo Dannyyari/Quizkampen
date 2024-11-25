@@ -257,7 +257,7 @@ public class GameGUI {
                             case "STATE_QUESTIONS" -> {
                                 QuestionsAndAnswers question= (QuestionsAndAnswers) inFromServer.readObject();
                                 Thread.sleep(1200);
-                          //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
+                                //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
                                 loadQuestion(question);
                                 cardLayout.show(mainContainer, "Question");
                             }
