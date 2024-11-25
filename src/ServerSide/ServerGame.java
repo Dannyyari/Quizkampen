@@ -116,6 +116,21 @@ public class ServerGame extends Thread implements Serializable {
         oos.flush();
     }
 
+    public boolean checkCategoryAnswer(String categoryFromUSer) {
+        List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
+        return validCategories.contains(categoryFromUSer);
+    }
+
+    // Förenklad metod inne i handleRound för att ta ut frågor och alla svar i en lista som ska skickas till klienten
+    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String category, List<DAO> daos) throws IOException {
+        for (DAO dao : daos) {
+            if (dao.getCategory().equalsIgnoreCase(category)) {
+                return dao.getQuestionsAndAnswers();
+            }
+        }
+        return null;
+    }
+
     // Klart. Kommentar ska läggas in.
     public void getResult(int currentRound) throws IOException {
         String scoreBoardP1 =
@@ -214,21 +229,6 @@ public class ServerGame extends Thread implements Serializable {
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);
         }
-    }
-
-    public boolean checkCategoryAnswer(String categoryFromUSer) {
-        List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
-        return validCategories.contains(categoryFromUSer);
-    }
-
-    // Förenklad metod inne i handleRound för att ta ut frågor och alla svar i en lista som ska skickas till klienten
-    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String category, List<DAO> daos) throws IOException {
-        for (DAO dao : daos) {
-            if (dao.getCategory().equalsIgnoreCase(category)) {
-                return dao.getQuestionsAndAnswers();
-            }
-        }
-        return null;
     }
 
     // Nästan klart, försöker fixa lite till i metoden kan komma att ändras.
