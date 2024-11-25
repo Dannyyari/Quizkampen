@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerListner {
-    private int port= 55555;
+    private int port= 55553;
 
     public ServerListner() {
         try (ServerSocket serverSocket = new ServerSocket(port);) {
