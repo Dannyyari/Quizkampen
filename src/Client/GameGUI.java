@@ -66,7 +66,6 @@ public class GameGUI {
         frame.setVisible(true);
     }
 
-
     private JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel label = new JLabel("Välj en kategori", SwingConstants.CENTER);
@@ -135,7 +134,6 @@ public class GameGUI {
                 button.setEnabled(true);
             }
         }
-
     }
 
     private JPanel createQuestionPanel() {
@@ -197,48 +195,48 @@ public class GameGUI {
             });
             buttonPanel.add(button);
         }
-
         panel.add(buttonPanel, BorderLayout.CENTER);
         panel.revalidate();
         panel.repaint();
         return panel;
     }
 
-    private JPanel createResultPanel(String playerName, int playerScore, String opponentName, int opponentScore) {
-        JPanel resultPanel = new JPanel(new BorderLayout());
-        JLabel titleLabel = new JLabel("Resultat", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        resultPanel.add(titleLabel, BorderLayout.NORTH);
+    private void createFinalResultPanel(String winnerMessage, String playerOneResults, String playerTwoResults) {
+        JPanel finalResultPanel = new JPanel(new BorderLayout());
 
-        JPanel contentPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+        // Titel som visar vem som vann
+        JLabel winnerLabel = new JLabel(winnerMessage, SwingConstants.CENTER);
+        winnerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        winnerLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        finalResultPanel.add(winnerLabel, BorderLayout.NORTH);
 
-        contentPanel.add(new JLabel(playerName + ":", SwingConstants.RIGHT));
-        contentPanel.add(new JLabel(playerScore + " poäng", SwingConstants.LEFT));
+        JPanel resultsPanel = new JPanel(new GridLayout(1, 2, 20, 0)); // 1 rad, 2 kolumner
+        resultsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        contentPanel.add(new JLabel(opponentName + ":", SwingConstants.RIGHT));
-        contentPanel.add(new JLabel(opponentScore + " poäng", SwingConstants.LEFT));
+        // Spelare 1-resultat
+        JTextArea playerOneTextArea = new JTextArea();
+        playerOneTextArea.setEditable(false);
+        playerOneTextArea.setText(playerOneResults);
+        playerOneTextArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        JScrollPane playerOneScrollPane = new JScrollPane(playerOneTextArea);
+        resultsPanel.add(playerOneScrollPane);
 
-        JLabel winnerLabel = new JLabel("", SwingConstants.CENTER);
-        winnerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        if (playerScore > opponentScore) {
-            winnerLabel.setText(playerName + " vann!");
-        } else if (playerScore < opponentScore) {
-            winnerLabel.setText(opponentName + " vann!");
-        } else {
-            winnerLabel.setText("Det blev oavgjort!");
-        }
+        // Spelare 2-resultat
+        JTextArea playerTwoTextArea = new JTextArea();
+        playerTwoTextArea.setEditable(false);
+        playerTwoTextArea.setText(playerTwoResults);
+        playerTwoTextArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        JScrollPane playerTwoScrollPane = new JScrollPane(playerTwoTextArea);
+        resultsPanel.add(playerTwoScrollPane);
 
-        contentPanel.add(new JLabel("Vinnare:", SwingConstants.RIGHT));
-        contentPanel.add(winnerLabel);
-
-        resultPanel.add(contentPanel, BorderLayout.CENTER);
+        finalResultPanel.add(resultsPanel, BorderLayout.CENTER);
 
         JButton closeButton = new JButton("Stäng");
         closeButton.addActionListener(e -> System.exit(0));
-        resultPanel.add(closeButton, BorderLayout.SOUTH);
+        finalResultPanel.add(closeButton, BorderLayout.SOUTH);
 
-        return resultPanel;
+        mainContainer.add(finalResultPanel, "FinalResult");
+        cardLayout.show(mainContainer, "FinalResult");
     }
 
     private void startNetworkThread() {
@@ -270,6 +268,12 @@ public class GameGUI {
                                 JOptionPane.showMessageDialog(frame, finalResult, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
                                 //frame.getContentPane().add(createResultPanel("Du", 0, "Motståndare", 0), "Result");
                                 //cardLayout.show(mainContainer, "Result");
+                            }
+                            case "STATE_FINAL_RESULT" -> {
+                                String winnerMessage = (String) inFromServer.readObject();
+                                String playerOneResults = (String) inFromServer.readObject();
+                                String playerTwoResults = (String) inFromServer.readObject();
+                                createFinalResultPanel(winnerMessage, playerOneResults, playerTwoResults);
                             }
                         }
                     }

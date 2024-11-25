@@ -41,6 +41,10 @@ public class ServerGame extends Thread implements Serializable {
     private int playerOneScore = 0;
     private int playerTwoScore = 0;
 
+    private final List<Integer> playerOneRoundScores = new ArrayList<>();
+    private final List<Integer> playerTwoRoundScores = new ArrayList<>();
+
+
     // Jag är lite osäker här.
     private List<QuestionsAndAnswers> questions;
     private final int currentQuestionIndex = 0;
@@ -183,8 +187,10 @@ public class ServerGame extends Thread implements Serializable {
         }
         if (isPlayerOne) {
             playerOneScore += correctAnswers;
+            playerOneRoundScores.add(correctAnswers); // Lägg till poäng för rundan
         } else {
             playerTwoScore += correctAnswers;
+            playerTwoRoundScores.add(correctAnswers); // Lägg till poäng för rundan
         }
         // Skicka resultatet till spelaren
         //ta bort här nere???
@@ -233,40 +239,56 @@ public class ServerGame extends Thread implements Serializable {
 
     // Nästan klart, försöker fixa lite till i metoden kan komma att ändras.
     private void sendFinalResults() throws IOException {
-        // Kontrollerar vem som vann
-        // Finns tre olika outcomes.
+        // Bygg resultatsträngarna för spelare 1 och spelare 2
+        StringBuilder resultPlayerOne = new StringBuilder();
+        StringBuilder resultPlayerTwo = new StringBuilder();
+
+        resultPlayerOne.append("Spelare 1:\n\n");
+        resultPlayerTwo.append("Spelare 2:\n\n");
+
+        for (int round = 0; round < totalRounds; round++) {
+            resultPlayerOne.append("Rond ").append(round + 1).append("\n");
+            resultPlayerOne.append(playerOneRoundScores.get(round))
+                    .append(" poäng av ").append(totalQuestions).append(" poäng.\n\n");
+
+            resultPlayerTwo.append("Rond ").append(round + 1).append("\n");
+            resultPlayerTwo.append(playerTwoRoundScores.get(round))
+                    .append(" poäng av ").append(totalQuestions).append(" poäng.\n\n");
+        }
+
+        // Totalt
+        resultPlayerOne.append("Totalt\n")
+                .append(playerOneScore).append(" poäng av ").append(totalRounds * totalQuestions).append(" poäng.\n");
+
+        resultPlayerTwo.append("Totalt\n")
+                .append(playerTwoScore).append(" poäng av ").append(totalRounds * totalQuestions).append(" poäng.\n");
+
+        // Vinnarmeddelanden
         String winnerMessagePlayerOne;
         String winnerMessagePlayerTwo;
 
         if (playerOneScore > playerTwoScore) {
-            winnerMessagePlayerOne = "Spelet är slut! Du vann!\n";
-            winnerMessagePlayerTwo = "Spelet är slut! Du förlorade!\n";
+            winnerMessagePlayerOne = "Du vann, grattis till vinsten!";
+            winnerMessagePlayerTwo = "Du förlorade, men bra spelat!";
         } else if (playerOneScore < playerTwoScore) {
-            winnerMessagePlayerOne = "Spelet är slut! Du förlorade!\n";
-            winnerMessagePlayerTwo = "Spelet är slut! Du vann!\n";
+            winnerMessagePlayerOne = "Du förlorade, men bra spelat!";
+            winnerMessagePlayerTwo = "Du vann, grattis till vinsten!";
         } else {
-            winnerMessagePlayerOne = "Spelet är slut! Det blev oavgjort!\n";
-            winnerMessagePlayerTwo = "Spelet är slut! Det blev oavgjort!\n";
+            winnerMessagePlayerOne = "Det blev oavgjort! Bra spelat!";
+            winnerMessagePlayerTwo = "Det blev oavgjort! Bra spelat!";
         }
 
-        // Skapa ett resultatmeddelande för spelare 1
-        String resultPlayerOne = winnerMessagePlayerOne +
-                "Du fick totalt " + playerOneScore + " poäng på " + totalRounds + " ronder.\n" +
-                "Motståndaren fick totalt " + playerTwoScore + " poäng på " + totalRounds + " ronder.\n";
-
-        // Skapa ett resultatmeddelande för spelare 2
-        String resultPlayerTwo = winnerMessagePlayerTwo +
-                "Du fick totalt " + playerTwoScore + " poäng på " + totalRounds + " ronder.\n" +
-                "Motståndaren fick totalt " + playerOneScore + " poäng på " + totalRounds + " ronder.\n";
-
-        // Skicka resultaten till spelare 1
-        toPlayerOne.writeObject("STATE_RESULT");
-        toPlayerOne.writeObject(resultPlayerOne);
+        // Skicka vinnarmeddelande och resultat till båda spelarna
+        toPlayerOne.writeObject("STATE_FINAL_RESULT");
+        toPlayerOne.writeObject(winnerMessagePlayerOne);
+        toPlayerOne.writeObject(resultPlayerOne.toString());
+        toPlayerOne.writeObject(resultPlayerTwo.toString());
         toPlayerOne.flush();
 
-        // Skicka resultaten till spelare 2
-        toPlayerTwo.writeObject("STATE_RESULT");
-        toPlayerTwo.writeObject(resultPlayerTwo);
+        toPlayerTwo.writeObject("STATE_FINAL_RESULT");
+        toPlayerTwo.writeObject(winnerMessagePlayerTwo);
+        toPlayerTwo.writeObject(resultPlayerOne.toString());
+        toPlayerTwo.writeObject(resultPlayerTwo.toString());
         toPlayerTwo.flush();
     }
 }
