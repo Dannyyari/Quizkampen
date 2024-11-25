@@ -25,6 +25,7 @@ public class GameGUI {
     private CardLayout cardLayout;
     private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
     private List<String> categoryList;
+    private StringBuilder roundMessage = new StringBuilder();
 
 
     public GameGUI(String playerName) {
@@ -263,6 +264,8 @@ public class GameGUI {
                             }
                             case "STATE_POINTSOFROUND" -> {
                                 String resultMessage = (String) inFromServer.readObject();
+                                roundMessage.append(resultMessage).append("\n");
+                                JOptionPane.showMessageDialog(frame, roundMessage);
                                 JOptionPane.showMessageDialog(frame, resultMessage, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
                             }
                             case "STATE_RESULT" -> {
