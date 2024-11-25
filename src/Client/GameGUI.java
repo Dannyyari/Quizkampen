@@ -19,17 +19,14 @@ public class GameGUI {
 
     private QuestionsAndAnswers currentQuestion;
 
-
     private JFrame frame;
     private JPanel mainContainer;
     private CardLayout cardLayout;
     private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
     private List<String> categoryList;
 
-
     public GameGUI(String playerName) {
         this.playerName = playerName;
-
         try {
             initializeNetwork();
             initializeGUI();
@@ -82,7 +79,6 @@ public class GameGUI {
                     String buttontext=button.getText();
                     outToServer.writeObject(buttontext);
                     outToServer.flush();
-                    System.out.println("Försöker trycka på knapp.");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }

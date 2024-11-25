@@ -11,79 +11,88 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ServerGame - Hanterar spelets logik och interaktion mellan två spelare (spelets hjärna).
+ *
+ * Denna klass ansvarar för att koordinera spelets flöde mellan två anslutna spelare.
+ * Den hanterar kommunikation via objektströmmar, skickar och tar emot frågor, samt uppdaterar poäng.
+ *
+ * Funktioner:
+ * - Hanterar spelrundor, turordning och poängberäkning.
+ * - Hämtar frågor baserat på kategorier.
+ * - Validerar spelarnas svar och tilldelar poäng.
+ * - Skickar resultat efter varje runda och vid spelets slut.
+ *
+ * Klassen använder DAO för att hämta frågor och RoundSettings för spelets inställningar.
+ *
+ * Klassen skickar STATE till klienten så klienten ska veta vad som ska visas i GUI
+ */
+
 public class ServerGame extends Thread implements Serializable {
-    // Klart.
     ServerSidePlayer playerOneSocket;
     ServerSidePlayer playerTwoSocket;
 
-    // Klart
+    //Objectoutput & input för att skicka serialiserade objekt
     private final ObjectOutputStream toPlayerOne;
     private final ObjectOutputStream toPlayerTwo;
     private final ObjectInputStream fromPlayerOne;
     private final ObjectInputStream fromPlayerTwo;
 
-    // Klart
     private final String pathToSport = "src/Questions/textfiles/SportQuestions";
     private final String pathToGeo = "src/Questions/textfiles/GeoQuestions";
     private final String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
     private final String pathToHistory = "src/Questions/textfiles/HistoryQuestions";
 
-    // Klart
     private final DAO sportQuestions = new DAO("Sport", pathToSport);
     private final DAO anatomyQuestions = new DAO("Anatomy", pathToAnatomy);
     private final DAO geoQuestions = new DAO("Geography", pathToGeo);
     private final DAO historyQuestions = new DAO("History", pathToHistory);
 
-    // Klart.
+    // boolean för att hålla koll på rundor
     private boolean playerOneStarts = true;
 
-    // Klart. Variabler för resten av logiken.
     private int playerOneScore = 0;
     private int playerTwoScore = 0;
 
     private final List<Integer> playerOneRoundScores = new ArrayList<>();
     private final List<Integer> playerTwoRoundScores = new ArrayList<>();
 
-
-    // Jag är lite osäker här.
-    private List<QuestionsAndAnswers> questions;
-    private final int currentQuestionIndex = 0;
     static RoundSettings settings = settings = new RoundSettings();
-
     private final static int totalQuestions = settings.getQuestions();
     private final static int totalRounds = settings.getRounds();
 
-    // Klart. Kopplar två spelare.
+    // Kopplar samman två spelare och initierar objektströmmar för kommunikation.
     public ServerGame( ServerSidePlayer PlayerOne, ServerSidePlayer PlayerTwo) throws IOException {
-
         this.playerOneSocket = PlayerOne;
         this.playerTwoSocket = PlayerTwo;
 
+        //Skickar och tar emot data
         try {
             toPlayerOne = new ObjectOutputStream(playerOneSocket.getSock().getOutputStream());
             toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getSock().getOutputStream());
             fromPlayerOne = new ObjectInputStream(playerOneSocket.getSock().getInputStream());
             fromPlayerTwo = new ObjectInputStream(playerTwoSocket.getSock().getInputStream());
             System.out.println("binding streams done");
-
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            System.err.println("Fel vid initialisering av objektströmmar: " + e.getMessage());
+            throw new IOException("Gick ej att skapa strömmarna för spelare", e);
         }
     }
 
-    // Klart. Kommentar ska läggas in.
+    // Kör alla rundor i spelet och hanterar omgångarna för båda spelarna.
+    // Efter alla rundor skickas slutresultatet till spelarna.
     public void run() {
         try {
             while (true) {
-                System.out.println("Currently in serverGame-loop!");
-
+                //vi börjar från runda 1 för att det ska vara snyggt vid utskrift
                 for (int round = 1; round <= totalRounds; round++) {
                     System.out.println("Runda " + round + " börjar nu!");
+                    //Hanterar spelrunda, detta ska köras först då den som ansluter först blir första spelare
                     if (playerOneStarts) {
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo, fromPlayerTwo);
-                        playerOneStarts = false;
+                        playerOneStarts = false;  //gör om till false så vid nästa körning ska spelare 2 få spela
                     } else {
+                        //byter plats på vem som börjar
                         handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
                         playerOneStarts = true;
                     }
@@ -94,12 +103,19 @@ public class ServerGame extends Thread implements Serializable {
                 sendFinalResults();
                 break;
             }
-        } catch (ClassNotFoundException | IOException e) {
-            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("ClassNotFoundException under rundhantering: " + e.getMessage());
+        } catch (IOException e){
+            e.printStackTrace();
+            System.out.println("IOException under run:" + e.getMessage());
+        }catch (RuntimeException e){
+            e.printStackTrace();
+            System.out.println("Okänt fel: " + e.getMessage());
         }
     }
 
-    // Klart. Kommentar ska läggas in.
+    // Skapar och returnerar en lista av DAO-objekt som representerar frågekategorier.
     public List<DAO> getListOfDAOS() {
         List<DAO> listOfDAO = new ArrayList<>();
         listOfDAO.add(sportQuestions);
@@ -108,8 +124,63 @@ public class ServerGame extends Thread implements Serializable {
         listOfDAO.add(historyQuestions);
         return listOfDAO;
     }
+    //Kollar igenom ifall den kategorin användaren matar in finns att välja mellan.
+    public boolean checkCategoryAnswer(String categoryFromUSer) {
+        List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
+        return validCategories.contains(categoryFromUSer);
+    }
 
-    // Klart. Skickar List <String> (!)
+    //itererar över lista av databaser för att matcha med vilken kategori användaren matar in.
+    // Hämtar sedan frågor för den valda kategorin från den motsvarande DAO.
+    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String category, List<DAO> daos) throws IOException {
+        for (DAO dao : daos) {
+            if (dao.getCategory().equalsIgnoreCase(category)) {
+                return dao.getQuestionsAndAnswers();
+            }
+        }
+        return null;
+    }
+
+    // Hanterar en runda av spelet genom att skicka kategori och frågor till spelarna samt att räkna deras poäng.
+    public void handleRound(
+            ObjectOutputStream chooserOut,
+            ObjectInputStream chooserIn,
+            ObjectOutputStream otherPlayerOut,
+            ObjectInputStream otherPlayerIn)
+            throws IOException, ClassNotFoundException {
+
+        //skickar <String> av kategorier till klient
+        sendCategoriesToClient(chooserOut, getListOfDAOS());
+        //strängformat av vad vi får från klienten
+        String chosenCategory = (String) chooserIn.readObject();
+
+        //Onödig metod i dagsläget men kan vara bra ifall man vill bygga på programmet
+        //Kanske om man vill mata in kategori via text.
+        if (!checkCategoryAnswer(chosenCategory)) {
+            chooserOut.writeObject("INVALID_CATEGORY");
+            chooserOut.flush();
+            return;
+        }
+
+        //Placerar frågor från vald kategori in till en lista som ska skickas ut till klient.
+        List<QuestionsAndAnswers> questionToSendToClientBasedOnCategory =
+                getQuestionsByChosenCategory(chosenCategory, getListOfDAOS());
+
+        //Nedan hanteras frågor och dess svar från användaren. All validering av svar samt poänghantering sker på serversida
+        if (playerOneStarts) {
+            // Spelaren som valde svarar först
+            handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, true);
+            // Andra spelaren svarar på samma frågor
+            handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, false);
+        } else {
+                                                    //Denna boolean är för att kunna flippa spelet så poäng lagras på korrekt spelare
+            handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, false);
+            // Andra spelaren svarar på samma frågor
+            handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);
+        }
+    }
+
+    // Skickar en lista <String> med tillgängliga kategorier till spelaren.
     public void sendCategoriesToClient(ObjectOutputStream oos, List<DAO> DAOS) throws IOException {
         List<String> categories = new ArrayList<>();
         for (DAO dao : DAOS) {
@@ -120,44 +191,7 @@ public class ServerGame extends Thread implements Serializable {
         oos.flush();
     }
 
-    public boolean checkCategoryAnswer(String categoryFromUSer) {
-        List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
-        return validCategories.contains(categoryFromUSer);
-    }
-
-    // Förenklad metod inne i handleRound för att ta ut frågor och alla svar i en lista som ska skickas till klienten
-    public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String category, List<DAO> daos) throws IOException {
-        for (DAO dao : daos) {
-            if (dao.getCategory().equalsIgnoreCase(category)) {
-                return dao.getQuestionsAndAnswers();
-            }
-        }
-        return null;
-    }
-
-    // Klart. Kommentar ska läggas in.
-    public void getResult(int currentRound) throws IOException {
-        String scoreBoardP1 =
-                "Du fick: " + playerOneScore + " poäng. \n" +
-                        "Motståndare fick: " + playerTwoScore + " poäng. \n" +
-                        "Rond " + currentRound + " av " + totalRounds;
-
-        String scoreBoardP2 =
-                "Du fick: " + playerTwoScore + " poäng. \n" +
-                        "Motståndare fick: " + playerOneScore + " poäng. \n" +
-                        "Rond " + currentRound + " av " + totalRounds;
-
-        toPlayerOne.writeObject("STATE_POINTSOFROUND");
-        toPlayerTwo.writeObject("STATE_POINTSOFROUND");
-
-        toPlayerOne.writeObject(scoreBoardP1);
-        toPlayerTwo.writeObject(scoreBoardP2);
-
-        toPlayerOne.flush();
-        toPlayerTwo.flush();
-    }
-
-    // Nästan klart, titta längst ner. Ska lägga kommentar.
+    // Hanterar spelarens svar på varje fråga och uppdaterar deras poäng baserat på svaren.
     public void handlePlayerAnswers(
             ObjectOutputStream outToPlayer,
             ObjectInputStream inFromPlayer,
@@ -193,51 +227,34 @@ public class ServerGame extends Thread implements Serializable {
             playerTwoRoundScores.add(correctAnswers); // Lägg till poäng för rundan
         }
         // Skicka resultatet till spelaren
-        //ta bort här nere???
         outToPlayer.writeObject("STATE_RESULT");
         outToPlayer.writeObject("Du fick " + correctAnswers + " rätta svar av " + totalQuestions + " antal frågor.");
         outToPlayer.flush();
     }
 
-    // Nästan klart, tror jag.
-    public void handleRound(
-            ObjectOutputStream chooserOut,
-            ObjectInputStream chooserIn,
-            ObjectOutputStream otherPlayerOut,
-            ObjectInputStream otherPlayerIn)
-            throws IOException, ClassNotFoundException {
+    // Skickar poängresultaten från den aktuella omgången till båda spelarna.
+    public void getResult(int currentRound) throws IOException {
+        String scoreBoardP1 =
+                "Du fick: " + playerOneScore + " poäng. \n" +
+                        "Motståndare fick: " + playerTwoScore + " poäng. \n" +
+                        "Rond " + currentRound + " av " + totalRounds;
 
-        // Spelare som väljer kategori
-        sendCategoriesToClient(chooserOut, getListOfDAOS());
-        String chosenCategory = (String) chooserIn.readObject();
-        System.out.println(chosenCategory);
+        String scoreBoardP2 =
+                "Du fick: " + playerTwoScore + " poäng. \n" +
+                        "Motståndare fick: " + playerOneScore + " poäng. \n" +
+                        "Rond " + currentRound + " av " + totalRounds;
 
-        if (!checkCategoryAnswer(chosenCategory)) {
-            chooserOut.writeObject("INVALID_CATEGORY");
-            chooserOut.flush();
-            return;
-        }
-        System.out.println("innan vi skickar frågor");
-        //Placerar frågor från vald kategori in till en lista som skickas ut till klient.
-        List<QuestionsAndAnswers> questionToSendToClientBasedOnCategory =
-                getQuestionsByChosenCategory(chosenCategory, getListOfDAOS());
+        toPlayerOne.writeObject("STATE_POINTSOFROUND");
+        toPlayerTwo.writeObject("STATE_POINTSOFROUND");
 
-        //göra om detta så att raderna under skiftar, vi vill inte alltid lagra playerOneScore i den första.
-        System.out.println("innan vi väljer vem som spelar");
-        if (playerOneStarts) {
-            System.out.println("Spelare 1 startar");
-            // Spelaren som valde svarar först
-            handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, true);
-            // Andra spelaren svarar på samma frågor
-            handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, false);
-        } else {
-            handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, false);
-            // Andra spelaren svarar på samma frågor
-            handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);
-        }
+        toPlayerOne.writeObject(scoreBoardP1);
+        toPlayerTwo.writeObject(scoreBoardP2);
+
+        toPlayerOne.flush();
+        toPlayerTwo.flush();
     }
 
-    // Nästan klart, försöker fixa lite till i metoden kan komma att ändras.
+    // Skickar slutgiltiga resultatet och vinnarmeddelanden till båda spelarna.
     private void sendFinalResults() throws IOException {
         // Bygg resultatsträngarna för spelare 1 och spelare 2
         StringBuilder resultPlayerOne = new StringBuilder();
