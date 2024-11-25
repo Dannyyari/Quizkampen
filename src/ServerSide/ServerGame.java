@@ -231,6 +231,7 @@ public class ServerGame extends Thread implements Serializable {
         return null;
     }
 
+    // Nästan klart, försöker fixa lite till i metoden kan komma att ändras.
     private void sendFinalResults() throws IOException {
         // Kontrollerar vem som vann
         // Finns tre olika outcomes.
