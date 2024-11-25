@@ -22,6 +22,7 @@ public class ServerGame extends Thread implements Serializable {
 
     private List<QuestionsAndAnswers> questions;
     private final int currentQuestionIndex = 0;
+
     private final String pathToSport = "src/Questions/textfiles/SportQuestions";
     private final String pathToGeo = "src/Questions/textfiles/GeoQuestions";
     private final String pathToAnatomy = "src/Questions/textfiles/AnatomyQuestions";
@@ -36,10 +37,9 @@ public class ServerGame extends Thread implements Serializable {
     static RoundSettings settings = settings = new RoundSettings();
 
     //variabler för resten av logiken
-    private int playerOneScore=0;
-    private int playerOneScoreR2=0;
-    private int playerTwoScore=0;
-    private int playerTwoScoreR2=0;
+    private int playerOneScore = 0;
+    private int playerTwoScore = 0;
+
     private final static int totalQuestions = settings.getQuestions();
     private final static int totalRounds = settings.getRounds();
 
@@ -62,11 +62,12 @@ public class ServerGame extends Thread implements Serializable {
         }
     }
 
-
+    // Klart. Kommentar ska läggas in.
     public void run() {
         try {
             while (true) {
-                System.out.println("in serverGame loop");
+                System.out.println("Currently in serverGame-loop!");
+
                 for (int round = 1; round <= totalRounds; round++) {
                     System.out.println("Runda " + round + " börjar nu!");
                     if (playerOneStarts) {
@@ -76,9 +77,10 @@ public class ServerGame extends Thread implements Serializable {
                         handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
                         playerOneStarts = true;
                     }
-                    getResault(round);
+                    // Skickar resultat efter varje runda.
+                    getResult(round);
                 }
-                // Skicka slutresultatet efter alla rundor
+                // Skickar slutresultatet efter alla rundor.
                 sendFinalResults();
                 break;
             }
@@ -87,7 +89,7 @@ public class ServerGame extends Thread implements Serializable {
         }
     }
 
-
+    // Klart. Kommentar ska läggas in.
     public List<DAO> getListOfDAOS() {
         List<DAO> listOfDAO = new ArrayList<>();
         listOfDAO.add(sportQuestions);
@@ -97,30 +99,32 @@ public class ServerGame extends Thread implements Serializable {
         return listOfDAO;
     }
 
-    //Skickar LIST <STRING>!!!!!
+    // Klart. Skickar List <String> (!)
     public void sendCategoriesToClient(ObjectOutputStream oos, List<DAO> DAOS) throws IOException {
         List<String> categories = new ArrayList<>();
         for (DAO dao : DAOS) {
             categories.add(dao.getCategory());
         }
-
         oos.writeObject("STATE_CATEGORY");
         oos.writeObject(categories);
         oos.flush();
     }
 
-    public void getResault(int currentRound) throws IOException {
-        String scoreBoardP1 = "Du fick: " + playerOneScore + " poäng. \n" +
+    // Klart. Kommentar ska läggas in.
+    public void getResult(int currentRound) throws IOException {
+        String scoreBoardP1 =
+                "Du fick: " + playerOneScore + " poäng. \n" +
                 "Motståndare fick: " + playerTwoScore + " poäng. \n" +
                 "Rond " + currentRound + " av " + totalRounds;
 
-        String scoreBoardP2 = "Du fick: " + playerTwoScore + " poäng. \n" +
+        String scoreBoardP2 =
+                "Du fick: " + playerTwoScore + " poäng. \n" +
                 "Motståndare fick: " + playerOneScore + " poäng. \n" +
                 "Rond " + currentRound + " av " + totalRounds;
 
         toPlayerOne.writeObject("STATE_POINTSOFROUND");
         toPlayerTwo.writeObject("STATE_POINTSOFROUND");
-        //gör en totalint för att skicka samma till båda
+
         toPlayerOne.writeObject(scoreBoardP1);
         toPlayerTwo.writeObject(scoreBoardP2);
 
@@ -128,10 +132,15 @@ public class ServerGame extends Thread implements Serializable {
         toPlayerTwo.flush();
     }
 
-    public void handlePlayerAnswers(ObjectOutputStream outToPlayer, ObjectInputStream inFromPlayer,
-                                    List<QuestionsAndAnswers> questionsForCategory, boolean isPlayerOne) throws IOException, ClassNotFoundException {
-        int correctAnswers = 0;
+    // Klart. Kommentar ska läggas in.
+    public void handlePlayerAnswers(
+            ObjectOutputStream outToPlayer,
+            ObjectInputStream inFromPlayer,
+            List<QuestionsAndAnswers> questionsForCategory,
+            boolean isPlayerOne)
+            throws IOException, ClassNotFoundException {
 
+        int correctAnswers = 0;
         for (int i = 0; i < totalQuestions; i++) {
             outToPlayer.writeObject("STATE_QUESTIONS");
             outToPlayer.flush();
@@ -144,9 +153,7 @@ public class ServerGame extends Thread implements Serializable {
             // Validera spelarens svar
             if (question.getCorrectAnswer().equalsIgnoreCase(playerAnswer.trim())) {
                 correctAnswers++;
-                //kanske ha en checkanswer i varje metod i GUI där vi har en sträng som inparameter, om CORRECT så ska
-                //knappen bli grön?
-                outToPlayer.writeObject("CORRECT");// Informera spelaren att svaret var rätt
+                outToPlayer.writeObject("CORRECT"); // Informera spelaren att svaret var rätt
             } else {
                 outToPlayer.writeObject("WRONG"); // Informera spelaren att svaret var fel
             }
@@ -158,7 +165,6 @@ public class ServerGame extends Thread implements Serializable {
         } else {
             playerTwoScore += correctAnswers;
         }
-
         // Skicka resultatet till spelaren
         //ta bort här nere???
         outToPlayer.writeObject("STATE_RESULT");
@@ -166,8 +172,11 @@ public class ServerGame extends Thread implements Serializable {
         outToPlayer.flush();
     }
 
-    public void handleRound(ObjectOutputStream chooserOut, ObjectInputStream chooserIn,
-                            ObjectOutputStream otherPlayerOut, ObjectInputStream otherPlayerIn)
+    public void handleRound(
+            ObjectOutputStream chooserOut,
+            ObjectInputStream chooserIn,
+            ObjectOutputStream otherPlayerOut,
+            ObjectInputStream otherPlayerIn)
             throws IOException, ClassNotFoundException {
 
         // Spelare som väljer kategori
@@ -210,7 +219,6 @@ public class ServerGame extends Thread implements Serializable {
             if (dao.getCategory().equalsIgnoreCase(catagory)) {
                 return dao.getQuestionsAndAnswers();
             }
-
         }
         return null;
     }
@@ -252,11 +260,4 @@ public class ServerGame extends Thread implements Serializable {
         toPlayerTwo.writeObject(resultPlayerTwo);
         toPlayerTwo.flush();
     }
-
-    //KANSKE
-    //SCOREBOARD
-    //ha en metod som skickar svar till både (chooserOutoch, otherPlayerOut)
-    //har samlat poäng för aktuell runda.
-    //Detta blir då total poäng.
-    //Spelarens egna poäng som personen alltid ska kunna se finns i klient
 }
