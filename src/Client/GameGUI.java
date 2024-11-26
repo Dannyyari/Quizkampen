@@ -28,6 +28,8 @@ Funktioner:
 
  */
 
+// REPO:  https://github.com/Dannyyari/Quizkampen
+
 
 // Definierar variabler för att hantera spelarnamn, serverkommunikation,
 // aktuella frågor, och gränssnittskomponenter som hanterar spelets olika vyer.
