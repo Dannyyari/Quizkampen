@@ -31,5 +31,4 @@ public class ServerSidePlayer {
     public Socket getSock() {
         return sock;
     }
-
 }

@@ -23,13 +23,13 @@ Funktioner:
 - Hanterar anslutningen till servern via sockets för att skicka och ta emot speldata.
 - Dynamiskt uppdaterar knappar, etiketter och vyer baserat på serverns tillstånd och spelprogress.
 - Lyssnar på server meddelanden i en separat tråd och visar rätt innehåll (kategorier, frågor eller resultat).
-- Behandlar användar inmatningar och skickar val till servern för att hantera spelets logik.
+- Behandlar inmatningar från användaren och skickar val till servern för att hantera spelets logik.
 - Ger visuell feedback vid rätt eller fel svar genom att färgmarkera knappar och visa meddelanden.
 
  */
 
 
-//Definierar variabler för att hantera spelarnamn, serverkommunikation,
+// Definierar variabler för att hantera spelarnamn, serverkommunikation,
 // aktuella frågor, och gränssnittskomponenter som hanterar spelets olika vyer.
 public class GameGUI {
     private final String playerName;
@@ -45,7 +45,7 @@ public class GameGUI {
     private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
     private List<String> categoryList;
 
-    //Konstruktor som initierar spelarnamn, startar nätverksanslutning, bygger GUI,
+    // Konstruktor som initierar spelarnamn, startar nätverksanslutning, bygger GUI,
     // och startar en tråd för att lyssna på servern. Hanterar fel vid anslutningsproblem.
     public GameGUI(String playerName) {
         this.playerName = playerName;
@@ -140,7 +140,7 @@ public class GameGUI {
         buttonPanel.repaint();
     }
 
-    //Laddar en fråga och svar från ett QuestionsAndAnswers objekt,
+    // Laddar en fråga och svar från ett QuestionsAndAnswers objekt,
     // visar frågan och blandar svaren, och uppdaterar knapparna i GUI med de nya svarsalternativen.
     private void loadQuestion(QuestionsAndAnswers question) {
         this.currentQuestion = question;
@@ -178,7 +178,7 @@ public class GameGUI {
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
-        //Skapar knappar för svarsalternativ, skickar valt svar till servern,
+        // Skapar knappar för svarsalternativ, skickar valt svar till servern,
         // och ger visuell feedback genom att färga knapparna grön eller röd beroende på om svaret är korrekt eller ej.
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
