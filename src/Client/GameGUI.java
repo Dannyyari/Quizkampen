@@ -38,12 +38,11 @@ public class GameGUI {
     private ObjectInputStream inFromServer;
 
     private QuestionsAndAnswers currentQuestion;
+    private List<String> categoryList;
 
     private JFrame frame;
     private JPanel mainContainer;
     private CardLayout cardLayout;
-    private final List<QuestionsAndAnswers> questionsList = new ArrayList<>();
-    private List<String> categoryList;
 
     //Konstruktor som initierar spelarnamn, startar nätverksanslutning, bygger GUI,
     // och startar en tråd för att lyssna på servern. Hanterar fel vid anslutningsproblem.
@@ -190,19 +189,19 @@ public class GameGUI {
                     String correctAnswer = currentQuestion.getCorrectAnswer();
                     boolean isCorrect = correctAnswer.equals(button.getText());
 
-                    // Clear previous button colors
+                    // Rensar tidigare knappfärger
                     buttons.forEach(b -> b.setBackground(UIManager.getColor("Button.background")));
 
-                    // Disable buttons after answering
+                    // Disablar knappar efter svar
                     buttons.forEach(b -> b.setEnabled(false));
 
                     if (isCorrect) {
                         System.out.println("Right answer");
-                        // Color the correct button green
+                        // Byter färg på rätt knapp till grön
                         button.setBackground(Color.GREEN);
                     } else {
                         System.out.println("Wrong answer");
-                        // Color the incorrect answer red
+                        // Ifall vi trycker på fel så visar alla fel röda och rätt blir grön
                         buttons.forEach(b -> {
                             if (b.getText().equals(correctAnswer)) {
                                 b.setBackground(Color.GREEN); // Correct answer button
@@ -290,28 +289,31 @@ public class GameGUI {
                     if (fromServer instanceof String message) {
                         switch (message) {
                             case "STATE_CATEGORY" -> {
+                                // Server ger oss en lista av kategorier
                                 categoryList = (List<String>) inFromServer.readObject();
                                 updateCategoryButtons(categoryList);
                                 cardLayout.show(mainContainer, "Category");
                             }
                             case "STATE_QUESTIONS" -> {
+                                // Server ger oss en fråga och alla svar
                                 QuestionsAndAnswers question = (QuestionsAndAnswers) inFromServer.readObject();
                                 Thread.sleep(1200);
-                                //     questionsList = (QuestionsAndAnswers quest) inFromServer.readObject();
                                 loadQuestion(question);
                                 cardLayout.show(mainContainer, "Question");
                             }
                             case "STATE_POINTSOFROUND" -> {
+                                // Server ger oss resultat för bägge spelare denna runda
                                 String resultMessage = (String) inFromServer.readObject();
                                 JOptionPane.showMessageDialog(frame, resultMessage, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
                             }
                             case "STATE_RESULT" -> {
+                                // Ger oss resultat för denna runda
                                 String finalResult = (String) inFromServer.readObject();
                                 JOptionPane.showMessageDialog(frame, finalResult, "Rundresultat", JOptionPane.INFORMATION_MESSAGE);
-                                //frame.getContentPane().add(createResultPanel("Du", 0, "Motståndare", 0), "Result");
-                                //cardLayout.show(mainContainer, "Result");
+
                             }
                             case "STATE_FINAL_RESULT" -> {
+                                //Ger oss slutresultat
                                 String winnerMessage = (String) inFromServer.readObject();
                                 String playerOneResults = (String) inFromServer.readObject();
                                 String playerTwoResults = (String) inFromServer.readObject();
