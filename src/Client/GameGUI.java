@@ -44,7 +44,7 @@ public class GameGUI {
     private JPanel mainContainer;
     private CardLayout cardLayout;
 
-    //Konstruktor som initierar spelarnamn, startar nätverksanslutning, bygger GUI,
+    // Konstruktor som initierar spelarnamn, startar nätverksanslutning, bygger GUI,
     // och startar en tråd för att lyssna på servern. Hanterar fel vid anslutningsproblem.
     public GameGUI(String playerName) {
         this.playerName = playerName;
