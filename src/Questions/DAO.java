@@ -50,6 +50,7 @@ public class DAO {
             // Felhantering om något går fel vid läsning av filen.
             System.err.println("Fel vid laddning av frågor: " + e.getMessage());
         }
+
     }
 
     public String getCategory() {
