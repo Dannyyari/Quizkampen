@@ -29,7 +29,7 @@ Funktioner:
  */
 
 
-//Definierar variabler för att hantera spelarnamn, serverkommunikation,
+// Definierar variabler för att hantera spelarnamn, serverkommunikation,
 // aktuella frågor, och gränssnittskomponenter som hanterar spelets olika vyer.
 public class GameGUI {
     private final String playerName;
@@ -58,7 +58,7 @@ public class GameGUI {
         }
     }
 
-    //Initierar nätverksanslutningen genom att skapa en socket till servern,
+    // Initierar nätverksanslutningen genom att skapa en socket till servern,
     // samt instanserar strömmar för att skicka och ta emot data.
     private void initializeNetwork() throws IOException {
         InetAddress serverAddress = InetAddress.getLoopbackAddress();
@@ -70,7 +70,7 @@ public class GameGUI {
         System.out.println("Ansluten till servern!");
     }
 
-    //Skapar och konfigurerar huvudfönstret för GUI, lägger till paneler för kategorier,
+    // Skapar och konfigurerar huvudfönstret för GUI, lägger till paneler för kategorier,
     // frågor och vänteläge med hjälp av CardLayout för att byta mellan vyer.
     private void initializeGUI() {
         frame = new JFrame("QuizKampen - " + playerName);
@@ -88,15 +88,15 @@ public class GameGUI {
         frame.setVisible(true);
     }
 
-    //Skapar en panel för att visa kategoriväljaren, med en etikett som instruerar användaren att välja en kategori.
+    // Skapar en panel för att visa kategoriväljaren, med en etikett som instruerar användaren att välja en kategori.
     private JPanel createCategoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel label = new JLabel("Välj en kategori", SwingConstants.CENTER);
         label.setFont(new Font("Arial", Font.BOLD, 18));
         panel.add(label, BorderLayout.NORTH);
 
-        //Skapar en panel med fyra knappar för kategoriurval,
-        // där varje knapp skickar vald kategori till servern när den klickas.
+        // Skapar en panel med fyra knappar för kategoriurval,
+        // där varje knapp skickar vald kategori (i strängformat) till servern när den klickas.
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         for (int i = 0; i < 4; i++) {
@@ -117,7 +117,7 @@ public class GameGUI {
         return panel;
     }
 
-    //Uppdaterar knapparna för kategoriurval baserat på en lista av kategorier,
+    // Uppdaterar knapparna för kategoriurval baserat på en lista av kategorier,
     // aktiverar dem och sätter rätt text, samt inaktiverar knappar om det inte finns tillräckligt med kategorier.
     private void updateCategoryButtons(List<String> categories) {
         JPanel categoryPanel = (JPanel) mainContainer.getComponent(0);
@@ -139,7 +139,7 @@ public class GameGUI {
         buttonPanel.repaint();
     }
 
-    //Laddar en fråga och svar från ett QuestionsAndAnswers objekt,
+    // Laddar en fråga och svar från ett QuestionsAndAnswers objekt,
     // visar frågan och blandar svaren, och uppdaterar knapparna i GUI med de nya svarsalternativen.
     private void loadQuestion(QuestionsAndAnswers question) {
         this.currentQuestion = question;
@@ -177,7 +177,7 @@ public class GameGUI {
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
-        //Skapar knappar för svarsalternativ, skickar valt svar till servern,
+        // Skapar knappar för svarsalternativ, skickar valt svar till servern,
         // och ger visuell feedback genom att färga knapparna grön eller röd beroende på om svaret är korrekt eller ej.
         for (int i = 0; i < 4; i++) {
             JButton button = new JButton();
@@ -330,7 +330,7 @@ public class GameGUI {
         }).start();
     }
 
-    //Startar programmet genom att be användaren ange sitt namn i en dialogruta.
+    // Startar programmet genom att be användaren ange sitt namn i en dialogruta.
     // Om ett giltigt namn anges skapas ett nytt GameGUI-objekt, annars visas ett felmeddelande.
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

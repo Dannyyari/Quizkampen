@@ -32,7 +32,7 @@ public class ServerGame extends Thread implements Serializable {
     ServerSidePlayer playerOneSocket;
     ServerSidePlayer playerTwoSocket;
 
-    //Objectoutput & input för att skicka serialiserade objekt
+    // Objectoutput & input för att skicka serialiserade objekt
     private final ObjectOutputStream toPlayerOne;
     private final ObjectOutputStream toPlayerTwo;
     private final ObjectInputStream fromPlayerOne;
@@ -48,7 +48,7 @@ public class ServerGame extends Thread implements Serializable {
     private final DAO geoQuestions = new DAO("Geography", pathToGeo);
     private final DAO historyQuestions = new DAO("History", pathToHistory);
 
-    // boolean för att hålla koll på rundor
+    // Boolean för att hålla koll på rundor
     private boolean playerOneStarts = true;
 
     private int playerOneScore = 0;
@@ -66,7 +66,7 @@ public class ServerGame extends Thread implements Serializable {
         this.playerOneSocket = PlayerOne;
         this.playerTwoSocket = PlayerTwo;
 
-        //Skickar och tar emot data
+        // Skickar och tar emot data
         try {
             toPlayerOne = new ObjectOutputStream(playerOneSocket.getSock().getOutputStream());
             toPlayerTwo = new ObjectOutputStream(playerTwoSocket.getSock().getOutputStream());
@@ -84,15 +84,15 @@ public class ServerGame extends Thread implements Serializable {
     public void run() {
         try {
             while (true) {
-                //vi börjar från runda 1 för att det ska vara snyggt vid utskrift
+                // Vi börjar från runda 1 för att det ska vara snyggt vid utskrift
                 for (int round = 1; round <= totalRounds; round++) {
                     System.out.println("Runda " + round + " börjar nu!");
-                    //Hanterar spelrunda, detta ska köras först då den som ansluter först blir första spelare
+                    // Hanterar spelrunda, detta ska köras först då den som ansluter först blir första spelare
                     if (playerOneStarts) {
                         handleRound(toPlayerOne, fromPlayerOne, toPlayerTwo, fromPlayerTwo);
                         playerOneStarts = false;  //gör om till false så vid nästa körning ska spelare 2 få spela
                     } else {
-                        //byter plats på vem som börjar
+                        // Byter plats på vem som börjar
                         handleRound(toPlayerTwo, fromPlayerTwo, toPlayerOne, fromPlayerOne);
                         playerOneStarts = true;
                     }
@@ -125,13 +125,13 @@ public class ServerGame extends Thread implements Serializable {
         return listOfDAO;
     }
 
-    //Kollar igenom ifall den kategorin användaren matar in finns att välja mellan.
+    // Kollar igenom ifall den kategorin användaren matar in finns att välja mellan.
     public boolean checkCategoryAnswer(String categoryFromUSer) {
         List<String> validCategories = List.of("Sport", "Geography", "Anatomy", "History");
         return validCategories.contains(categoryFromUSer);
     }
 
-    //itererar över lista av databaser för att matcha med vilken kategori användaren matar in.
+    // Itererar över lista av databaser för att matcha med vilken kategori användaren matar in.
     // Hämtar sedan frågor för den valda kategorin från den motsvarande DAO.
     public List<QuestionsAndAnswers> getQuestionsByChosenCategory(String category, List<DAO> daos) throws IOException {
         for (DAO dao : daos) {
@@ -150,31 +150,31 @@ public class ServerGame extends Thread implements Serializable {
             ObjectInputStream otherPlayerIn)
             throws IOException, ClassNotFoundException {
 
-        //skickar <String> av kategorier till klient
+        // Skickar <String> av kategorier till klient
         sendCategoriesToClient(chooserOut, getListOfDAOS());
-        //strängformat av vad vi får från klienten
+        // Strängformat av vad vi får från klienten
         String chosenCategory = (String) chooserIn.readObject();
 
-        //Onödig metod i dagsläget men kan vara bra ifall man vill bygga på programmet
-        //Kanske om man vill mata in kategori via text.
+        // Onödig metod i dagsläget men kan vara bra ifall man vill bygga på programmet
+        // Kanske om man vill mata in kategori via text.
         if (!checkCategoryAnswer(chosenCategory)) {
             chooserOut.writeObject("INVALID_CATEGORY");
             chooserOut.flush();
             return;
         }
 
-        //Placerar frågor från vald kategori in till en lista som ska skickas ut till klient.
+        // Placerar frågor från vald kategori in till en lista som ska skickas ut till klient.
         List<QuestionsAndAnswers> questionToSendToClientBasedOnCategory =
                 getQuestionsByChosenCategory(chosenCategory, getListOfDAOS());
 
-        //Nedan hanteras frågor och dess svar från användaren. All validering av svar samt poänghantering sker på serversida
+        // Nedan hanteras frågor och dess svar från användaren. All validering av svar samt poänghantering sker på serversida
         if (playerOneStarts) {
             // Spelaren som valde svarar först
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, true);
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, false);
         } else {
-            //Denna boolean är för att kunna flippa spelet så poäng lagras på korrekt spelare
+            // Denna boolean är för att kunna flippa spelet så poäng lagras på korrekt spelare
             handlePlayerAnswers(chooserOut, chooserIn, questionToSendToClientBasedOnCategory, false);
             // Andra spelaren svarar på samma frågor
             handlePlayerAnswers(otherPlayerOut, otherPlayerIn, questionToSendToClientBasedOnCategory, true);

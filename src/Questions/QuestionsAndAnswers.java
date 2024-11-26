@@ -17,7 +17,7 @@ import java.io.Serializable;
  */
 
 public class QuestionsAndAnswers implements Serializable {
-    //Filens innehåll som ska delas upp in i dessa variablerx
+    // Filens innehåll som ska delas upp in i dessa variablerx
     private final String question;
     private final String correctAnswer;
     private final String answer2;
@@ -33,7 +33,7 @@ public class QuestionsAndAnswers implements Serializable {
         this.answer4 = answer4;
     }
 
-    //getter för frågor och svar för att sedan placera på paneler
+    // Getter för frågor och svar för att sedan placera på paneler
     public String getQuestion() {
         return question;
     }
